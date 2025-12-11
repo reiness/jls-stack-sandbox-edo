@@ -1,12 +1,11 @@
 import { NavLink, Outlet } from "react-router-dom"
-import { Button } from "@/components/ui/button"
 
 export function AppLayout() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50">
       {/* Top bar */}
       <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
-        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
+        <div className="max-w-screen-2xl mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-sky-500 text-xs font-bold">
               J
@@ -61,16 +60,39 @@ export function AppLayout() {
               Help
             </NavLink>
 
-            {/* Placeholder for future routes */}
-            <Button variant="outline" size="sm" className="border-slate-700 text-xs">
-              Future Route
-            </Button>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                [
+                  "px-3 py-1.5 rounded-lg transition-colors",
+                  isActive
+                    ? "bg-slate-800 text-slate-50"
+                    : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-50",
+                ].join(" ")
+              }
+            >
+              Settings
+            </NavLink>
+
+            <NavLink
+              to="/playground"
+              className={({ isActive }) =>
+                [
+                  "px-3 py-1.5 rounded-lg transition-colors",
+                  isActive
+                    ? "bg-slate-800 text-slate-50"
+                    : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-50",
+                ].join(" ")
+              }
+            >
+              Playground
+            </NavLink>
           </nav>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="max-w-screen-2xl mx-auto px-4 py-6">
         <Outlet />
       </main>
     </div>
