@@ -2,14 +2,16 @@ import { NavLink, Outlet } from "react-router-dom";
 
 export function PlaygroundPage() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Playground</h1>
-      <div className="flex gap-4 border-b pb-4 mb-4">
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold tracking-tight text-foreground">Playground</h1>
+      <div className="flex gap-4 border-b-2 border-border pb-4">
         <NavLink
           to="/playground/forms"
           className={({ isActive }) =>
-            `px-3 py-1.5 rounded-lg transition-colors text-sm ${
-              isActive ? "bg-slate-800 text-slate-50" : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-50"
+            `px-4 py-2 rounded-lg transition-all border-2 text-sm font-bold ${
+              isActive 
+                ? "bg-primary text-primary-foreground border-border shadow-hard translate-y-[-2px]" 
+                : "border-transparent text-muted-foreground hover:text-accent-foreground hover:bg-accent"
             }`
           }
         >
@@ -18,8 +20,10 @@ export function PlaygroundPage() {
         <NavLink
           to="/playground/charts"
           className={({ isActive }) =>
-            `px-3 py-1.5 rounded-lg transition-colors text-sm ${
-              isActive ? "bg-slate-800 text-slate-50" : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-50"
+            `px-4 py-2 rounded-lg transition-all border-2 text-sm font-bold ${
+              isActive 
+                ? "bg-primary text-primary-foreground border-border shadow-hard translate-y-[-2px]" 
+                : "border-transparent text-muted-foreground hover:text-accent-foreground hover:bg-accent"
             }`
           }
         >
