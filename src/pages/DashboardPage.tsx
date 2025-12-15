@@ -1,4 +1,5 @@
 import { BadgePill } from "../components/common/BadgePill"
+import { InlineAlert } from "../components/common/InlineAlert"
 import { PageHeader } from "../components/common/PageHeader"
 import { StatsRow } from "../components/dashboard/StatsRow"
 
@@ -10,6 +11,12 @@ export function DashboardPage() {
         subtitle="Your JLS Stack Sandbox command center." 
       />
       
+      <InlineAlert 
+        title="Welcome Back!" 
+        message="You have 3 new notifications." 
+        tone="info" 
+      />
+
       <StatsRow 
         stats={[
           { label: "Routes", value: "3+" },
@@ -18,10 +25,12 @@ export function DashboardPage() {
         ]} 
       />
 
-      <div className="p-4 bg-muted border-2 border-border rounded-lg shadow-hard-sm">
-        <p className="text-sm text-muted-foreground font-bold opacity-80">
-           Routing is working! check out the playground.
-        </p>
+      <div className="pt-4">
+        <InlineAlert 
+          title="Routing is working!" 
+          message="Check out the Playground to experiment with more components." 
+          tone="success" 
+        />
       </div>
     </div>
   )

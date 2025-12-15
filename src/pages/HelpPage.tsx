@@ -1,3 +1,4 @@
+import { InfoRow } from "../components/common/InfoRow";
 import { PageHeader } from "../components/common/PageHeader";
 import { SectionCard } from "../components/common/SectionCard";
 
@@ -42,6 +43,13 @@ export function HelpPage() {
             <li>Ping a mentor!</li>
           </ul>
         </SectionCard>
+      </div>
+
+      {/* System Status */}
+      <div className="mt-8 rounded-xl border-2 border-border/10 bg-card p-4">
+        <h3 className="mb-4 text-sm font-bold text-foreground">System Status</h3>
+        <InfoRow label="Docs Version" value="v2.5.0" />
+        <InfoRow label="Support" value="Active" />
       </div>
     </div>
   )

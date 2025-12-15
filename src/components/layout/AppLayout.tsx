@@ -22,6 +22,7 @@ const navGroups = [
     label: "System",
     items: [
       { label: "Settings", to: "/settings" },
+      { label: "Components", to: "/components", badge: "Dev" },
       { label: "Help", to: "/help" },
     ],
   },

@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom"
 import { AppLayout } from "@/components/layout/AppLayout"
-import { DashboardPage } from "@/pages/DashboardPage"
+import { ActivityPage } from "./pages/ActivityPage"
+import { ComponentsPage } from "./pages/ComponentsPage"
+import { DashboardPage } from "./pages/DashboardPage"
 import { LayoutSandboxPage } from "@/pages/LayoutSandboxPage"
 import { HelpPage } from "@/pages/HelpPage"
 import { SettingsPage } from "@/pages/SettingsPage"
@@ -21,7 +23,9 @@ function App() {
 
         <Route path="help" element={<HelpPage />} />
 
+        <Route path="activity" element={<ActivityPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="components" element={<ComponentsPage />} />
         <Route path="playground" element={<PlaygroundPage />}>
           <Route index element={<Navigate to="forms" replace />} />
           <Route path="forms" element={<FormsPage />} />
