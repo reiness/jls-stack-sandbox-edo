@@ -1,9 +1,13 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { PageHeader } from "../components/common/PageHeader";
 
 export function PlaygroundPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">Playground</h1>
+      <PageHeader 
+        title="Playground" 
+        subtitle="Experiment with components and layouts here."
+      />
       <div className="flex gap-4 border-b-2 border-border pb-4">
         <NavLink
           to="/playground/forms"
