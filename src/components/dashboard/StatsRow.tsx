@@ -25,7 +25,7 @@ export function StatsRow({ stats = defaultStats }: { stats?: Stat[] }) {
             key={idx}
             className="rounded-lg border-2 border-border bg-muted p-4 shadow-hard-sm"
           >
-            <div className="text-xs text-muted-foreground font-bold opacity-80">{s.label}</div>
+            <div className="text-xs text-muted-foreground font-bold">{s.label}</div>
             <div className="text-lg font-semibold text-foreground">{s.value}</div>
             {s.hint ? (
               <div className="text-xs text-muted-foreground mt-1">{s.hint}</div>

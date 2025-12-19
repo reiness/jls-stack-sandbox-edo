@@ -10,7 +10,7 @@ export function LayoutSandbox() {
           <h1 className="text-3xl font-bold tracking-tight">
             Tailwind Layout Sandbox
           </h1>
-          <p className="text-base text-slate-500 font-bold opacity-80">
+          <p className="text-base text-slate-500 font-bold">
             A showcase of responsive patterns using utility-first CSS.
           </p>
         </section>

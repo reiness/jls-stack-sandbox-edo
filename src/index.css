@@ -52,32 +52,32 @@
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #a855f7; /* Purple 500 */
+  --primary: #9333ea; /* Purple 600 */
   --primary-foreground: #ffffff;
   --secondary: #38bdf8; /* Sky 400 */
   --secondary-foreground: #000000;
   --muted: #f1f5f9; /* Slate 100 */
-  --muted-foreground: #64748b; /* Slate 500 */
+  --muted-foreground: #475569; /* Slate 600 */
   --accent: #38bdf8; /* Sky 400 */
   --accent-foreground: #000000;
-  --destructive: #ef4444; /* Red 500 */
+  --destructive: #dc2626; /* Red 600 */
   --destructive-foreground: #ffffff;
   --border: #000000; /* Black */
   --input: #f1f5f9; /* Slate 100 - Matches Muted */
-  --ring: #a855f7;
-  --chart-1: #a855f7;
+  --ring: #9333ea;
+  --chart-1: #9333ea;
   --chart-2: #38bdf8;
   --chart-3: #fef9c3;
-  --chart-4: #ef4444;
+  --chart-4: #dc2626;
   --chart-5: #0f172a;
   --sidebar: #fef9c3;
   --sidebar-foreground: #0f172a;
-  --sidebar-primary: #a855f7;
+  --sidebar-primary: #9333ea;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #38bdf8;
   --sidebar-accent-foreground: #000000;
   --sidebar-border: #000000;
-  --sidebar-ring: #a855f7;
+  --sidebar-ring: #9333ea;
 }
 
 

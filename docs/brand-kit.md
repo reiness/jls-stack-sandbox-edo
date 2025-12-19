@@ -14,7 +14,7 @@ Playful, Myriad, Cartoony
 # Visual Tokens: Colors, Type, Spacing, Radii
 
 ## Color Tokens
-* **primary** (Purple 500 - #a855f7)
+* **primary** (Purple 600 - #9333ea)
   * usage: primary buttons, key CTAs
   * classes: bg-primary text-primary-foreground border-2 border-border shadow-hard hover:translate-y-[2px] hover:shadow-hard-sm active:translate-y-[4px] active:shadow-none transition-all rounded-lg font-black tracking-wide
 * **background** (Yellow 100 - #fef9c3)
@@ -29,10 +29,10 @@ Playful, Myriad, Cartoony
 * **border** (Black - #000000)
   * usage: dividers, borders
   * classes: border-2 border-border
-* **muted-text** (Slate 500 - #64748b)
+* **muted-text** (Slate 600 - #475569)
   * usage: muted text, disabled states
-  * classes: text-muted-foreground font-bold opacity-80
-* **danger** (Red 500 - #ef4444)
+  * classes: text-muted-foreground font-bold
+* **danger** (Red 600 - #dc2626)
   * usage: error states
   * classes: bg-destructive text-destructive-foreground border-2 border-border shadow-hard rounded-xl font-bold
 

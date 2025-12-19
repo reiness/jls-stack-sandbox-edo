@@ -70,7 +70,7 @@ export function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Display Name */}
                   <Field>
-                    <FieldLabel htmlFor="displayName">Display Name</FieldLabel>
+                    <FieldLabel htmlFor="displayName">Display Name <span className="text-destructive">*</span></FieldLabel>
                     <FieldContent>
                       <Input 
                         id="displayName" 
@@ -86,14 +86,14 @@ export function SettingsPage() {
 
                   {/* Role - Using Controller for Select */}
                   <Field>
-                    <FieldLabel>Role</FieldLabel>
+                    <FieldLabel htmlFor="role">Role <span className="text-destructive">*</span></FieldLabel>
                     <FieldContent>
                       <Controller
                         control={form.control}
                         name="role"
                         render={({ field }) => (
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger id="role" className="w-full">
                               <SelectValue placeholder="Select a role" />
                             </SelectTrigger>
                             <SelectContent>

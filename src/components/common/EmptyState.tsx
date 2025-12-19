@@ -13,8 +13,8 @@ export function EmptyState({ title, description, action }: EmptyStateProps) {
       <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted shadow-hard-sm">
         <PackageOpen className="h-8 w-8 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-bold text-foreground">{title}</h3>
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground font-bold opacity-80">
+      <div className="text-lg font-bold text-foreground">{title}</div>
+      <p className="mt-1 max-w-sm text-sm text-muted-foreground font-bold">
         {description}
       </p>
       {action ? <div className="mt-6">{action}</div> : null}

@@ -8,7 +8,7 @@ import { Button } from "../components/ui/button"
 
 export function DashboardPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader 
         title="Dashboard" 
         subtitle="Your JLS Stack Sandbox command center." 

@@ -82,7 +82,7 @@ export function CreateToolPage() {
                   name="name"
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor={field.name}>Tool Name</FieldLabel>
+                      <FieldLabel htmlFor={field.name}>Tool Name <span className="text-destructive">*</span></FieldLabel>
                       <FieldContent>
                         <Input
                           {...field}
@@ -106,7 +106,7 @@ export function CreateToolPage() {
                     name="category"
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>Category</FieldLabel>
+                        <FieldLabel htmlFor="category">Category <span className="text-destructive">*</span></FieldLabel>
                         <FieldContent>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <SelectTrigger id="category" aria-invalid={fieldState.invalid}>
@@ -131,10 +131,10 @@ export function CreateToolPage() {
                     name="visibility"
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>Visibility</FieldLabel>
+                        <FieldLabel htmlFor="visibility">Visibility <span className="text-destructive">*</span></FieldLabel>
                         <FieldContent>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger>
+                            <SelectTrigger id="visibility">
                               <SelectValue placeholder="Select visibility" />
                             </SelectTrigger>
                             <SelectContent>
@@ -165,7 +165,7 @@ export function CreateToolPage() {
                   name="description"
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor={field.name}>Short Description</FieldLabel>
+                      <FieldLabel htmlFor={field.name}>Short Description <span className="text-destructive">*</span></FieldLabel>
                       <FieldContent>
                         <Textarea
                           {...field}

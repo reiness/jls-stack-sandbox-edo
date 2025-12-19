@@ -87,7 +87,7 @@ export function AppLayout() {
         {/* Mobile menu button */}
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-md border-2 border-border bg-card px-2 py-1 text-sm font-bold shadow-hard-sm active:translate-y-0.5 active:shadow-none md:hidden"
+          className="inline-flex items-center justify-center rounded-md border-2 border-border bg-card px-2 py-1 text-sm font-bold shadow-hard-sm active:translate-y-0.5 active:shadow-none md:hidden outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
           onClick={() => setSidebarOpen((prev) => !prev)}
         >
           Menu
@@ -97,8 +97,8 @@ export function AppLayout() {
       {/* Shell body: flexible container */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar – desktop (scrollable) */}
-        <aside className="hidden w-64 shrink-0 overflow-y-auto border-r-2 border-border bg-sidebar py-6 md:block">
-          <nav className="flex flex-col gap-6 px-4">
+        <aside className="hidden w-64 shrink-0 overflow-y-auto border-r-2 border-border bg-sidebar py-6 md:block" aria-label="Sidebar">
+          <nav className="flex flex-col gap-6 px-4" aria-label="Main Navigation">
             {navGroups.map((group) => (
               <div key={group.label} className="flex flex-col gap-2">
                 <div className="px-2 text-sm uppercase tracking-wider text-foreground font-bold ">
@@ -111,7 +111,7 @@ export function AppLayout() {
                     end={item.to === "/"}
                     className={({ isActive }) =>
                       [
-                        "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-bold transition-all border-2",
+                        "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-bold transition-all border-2 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
                         isActive
                           ? "bg-primary text-primary-foreground border-border shadow-hard -translate-y-0.5"
                           : "border-transparent text-muted-foreground hover:text-foreground hover:bg-accent hover:border-border",
@@ -141,7 +141,7 @@ export function AppLayout() {
             />
 
             {/* Panel */}
-            <aside className="w-64 border-l-2 border-border bg-sidebar p-6 shadow-2xl overflow-y-auto">
+            <aside className="w-64 border-l-2 border-border bg-sidebar p-6 shadow-2xl overflow-y-auto" aria-label="Mobile Menu">
               <div className="mb-6 flex items-center justify-between">
                 <span className="text-sm font-black uppercase tracking-wider text-foreground">
                   Menu
@@ -155,7 +155,7 @@ export function AppLayout() {
                 </button>
               </div>
 
-              <nav className="flex flex-col gap-6">
+              <nav className="flex flex-col gap-6" aria-label="Mobile Navigation">
                 {navGroups.map((group) => (
                   <div key={group.label} className="flex flex-col gap-2">
                     <div className="px-2 text-sm uppercase tracking-wider text-foreground font-bold ">
@@ -168,7 +168,7 @@ export function AppLayout() {
                         end={item.to === "/"}
                         className={({ isActive }) =>
                           [
-                            "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-bold transition-all border-2",
+                            "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-bold transition-all border-2 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
                             isActive
                               ? "bg-primary text-primary-foreground border-border shadow-hard -translate-y-0.5"
                               : "border-transparent text-muted-foreground hover:text-foreground hover:bg-accent hover:border-border",

@@ -36,7 +36,7 @@ export function InlineAlert({ title, message, tone = "info" }: InlineAlertProps)
     >
       <div className="shrink-0 pt-0.5">{currentStyle.icon}</div>
       <div className="space-y-1">
-        <h4 className="font-bold leading-none tracking-tight">{title}</h4>
+        <div className="font-bold leading-none tracking-tight">{title}</div>
         <p className="text-sm opacity-90">{message}</p>
       </div>
     </div>

@@ -16,7 +16,7 @@ export function HelpPage() {
           title="Week 1 Docs" 
           description="Environment setup"
         >
-          <ul className="text-sm text-muted-foreground font-bold opacity-80 list-disc list-inside space-y-2">
+          <ul className="text-sm text-muted-foreground font-bold list-disc list-inside space-y-2">
             <li>Stack basics</li>
             <li>Getting started</li>
           </ul>
@@ -27,7 +27,7 @@ export function HelpPage() {
           title="Week 2 UI/UX Docs" 
           description="UI/UX principles"
         >
-          <ul className="text-sm text-muted-foreground font-bold opacity-80 list-disc list-inside space-y-2">
+          <ul className="text-sm text-muted-foreground font-bold list-disc list-inside space-y-2">
             <li>Layout techniques</li>
             <li>Component styling</li>
           </ul>
@@ -38,7 +38,7 @@ export function HelpPage() {
           title="Ask for Help" 
           description="Stuck on a problem?"
         >
-          <ul className="text-sm text-muted-foreground font-bold opacity-80 list-disc list-inside space-y-2">
+          <ul className="text-sm text-muted-foreground font-bold list-disc list-inside space-y-2">
             <li>Need a code review?</li>
             <li>Ping a mentor!</li>
           </ul>
