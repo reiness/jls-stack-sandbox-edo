@@ -55,115 +55,125 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-8 max-w-5xl mx-auto">
       <PageHeader
         title="Settings"
         subtitle="Manage your profile and preferences using the Field-first approach."
       />
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <SectionCard title="Personal Information" description="How others see you in the sandbox.">
-          <FieldGroup>
-            {/* Display Name */}
-            <Field>
-              <FieldLabel htmlFor="displayName">Display Name</FieldLabel>
-              <FieldContent>
-                <Input 
-                  id="displayName" 
-                  {...form.register("displayName")} 
-                  aria-invalid={!!form.formState.errors.displayName}
-                />
-                <FieldDescription>
-                  Your public handle. Minimum 2 characters.
-                </FieldDescription>
-                <FieldError errors={[form.formState.errors.displayName]} />
-              </FieldContent>
-            </Field>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Column: Personal Info */}
+          <div className="lg:col-span-2 space-y-8">
+            <SectionCard title="Personal Information" description="How others see you in the sandbox.">
+              <FieldGroup>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Display Name */}
+                  <Field>
+                    <FieldLabel htmlFor="displayName">Display Name</FieldLabel>
+                    <FieldContent>
+                      <Input 
+                        id="displayName" 
+                        {...form.register("displayName")} 
+                        aria-invalid={!!form.formState.errors.displayName}
+                      />
+                      <FieldDescription>
+                        Your public handle. Minimum 2 characters.
+                      </FieldDescription>
+                      <FieldError errors={[form.formState.errors.displayName]} />
+                    </FieldContent>
+                  </Field>
 
-            {/* Role - Using Controller for Select */}
-            <Field>
-              <FieldLabel>Role</FieldLabel>
-              <FieldContent>
-                <Controller
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="editor">Editor</SelectItem>
-                        <SelectItem value="viewer">Viewer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                <FieldDescription>
-                  Determines your access level.
-                </FieldDescription>
-                <FieldError errors={[form.formState.errors.role]} />
-              </FieldContent>
-            </Field>
+                  {/* Role - Using Controller for Select */}
+                  <Field>
+                    <FieldLabel>Role</FieldLabel>
+                    <FieldContent>
+                      <Controller
+                        control={form.control}
+                        name="role"
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select a role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="editor">Editor</SelectItem>
+                              <SelectItem value="viewer">Viewer</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      <FieldDescription>
+                        Determines your access level.
+                      </FieldDescription>
+                      <FieldError errors={[form.formState.errors.role]} />
+                    </FieldContent>
+                  </Field>
+                </div>
 
-            {/* Bio */}
-            <Field>
-              <FieldLabel htmlFor="bio">Bio</FieldLabel>
-              <FieldContent>
-                <Textarea 
-                  id="bio"
-                  placeholder="Tell us about yourself..."
-                  className="resize-none"
-                  {...form.register("bio")}
-                />
-                <FieldDescription>
-                  Brief description for your profile (max 160 chars).
-                </FieldDescription>
-                <FieldError errors={[form.formState.errors.bio]} />
-              </FieldContent>
-            </Field>
-          </FieldGroup>
-        </SectionCard>
-
-        <SectionCard title="Preferences" description="Control your app experience.">
-          <FieldGroup>
-            {/* Notifications - Using Controller for Switch */}
-            <Field orientation="horizontal">
-              <FieldLabel htmlFor="notifications" className="cursor-pointer">
-                Push Notifications
-              </FieldLabel>
-              <FieldContent className="flex flex-row items-center justify-between">
-                <Controller
-                  control={form.control}
-                  name="notifications"
-                  render={({ field }) => (
-                    <Switch
-                      id="notifications"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                {/* Bio */}
+                <Field>
+                  <FieldLabel htmlFor="bio">Bio</FieldLabel>
+                  <FieldContent>
+                    <Textarea 
+                      id="bio"
+                      placeholder="Tell us about yourself..."
+                      className="resize-none"
+                      {...form.register("bio")}
                     />
-                  )}
-                />
-              </FieldContent>
-            </Field>
-            {/* Note: horizontal orientation puts label and content side-by-side */}
-          </FieldGroup>
-        </SectionCard>
+                    <FieldDescription>
+                      Brief description for your profile (max 160 chars).
+                    </FieldDescription>
+                    <FieldError errors={[form.formState.errors.bio]} />
+                  </FieldContent>
+                </Field>
+              </FieldGroup>
+            </SectionCard>
+          </div>
 
-        <div className="flex justify-end gap-3 pt-4">
+          {/* Side Column: Preferences */}
+          <div className="lg:col-span-1 space-y-8">
+            <SectionCard title="Preferences" description="Control your app experience.">
+              <FieldGroup>
+                {/* Notifications - Using Controller for Switch */}
+                <Field orientation="horizontal">
+                  <FieldLabel htmlFor="notifications" className="cursor-pointer">
+                    Push Notifications
+                  </FieldLabel>
+                  <FieldContent className="flex flex-row items-center justify-between">
+                    <Controller
+                      control={form.control}
+                      name="notifications"
+                      render={({ field }) => (
+                        <Switch
+                          id="notifications"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </FieldContent>
+                </Field>
+                {/* Note: horizontal orientation puts label and content side-by-side */}
+              </FieldGroup>
+            </SectionCard>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-4 border-t-2 border-border/10">
           <Button 
             type="button" 
             variant="outline" 
             onClick={() => form.reset()}
-            className="rounded-xl border-2"
+            className="rounded-lg border-2"
             disabled={form.formState.isSubmitting}
           >
             Reset
           </Button>
           <Button 
             type="submit" 
-            className="rounded-xl shadow-hard transition-all active:translate-y-1 active:shadow-none"
+            className="rounded-lg border-2 border-border shadow-hard transition-all hover:translate-y-0.5 hover:shadow-hard-sm active:translate-y-1 active:shadow-none min-w-[120px]"
             disabled={form.formState.isSubmitting}
           >
             {form.formState.isSubmitting ? "Saving..." : "Save Changes"}

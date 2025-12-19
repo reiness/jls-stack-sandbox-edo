@@ -7,6 +7,7 @@ import { LayoutSandboxPage } from "@/pages/LayoutSandboxPage"
 import { HelpPage } from "@/pages/HelpPage"
 import { SettingsPage } from "@/pages/SettingsPage"
 import { PlaygroundPage } from "@/pages/PlaygroundPage"
+import { CreateToolPage } from "@/pages/CreateToolPage"
 import { FormsPage } from "@/pages/playground/FormsPage"
 import { ChartsPage } from "@/pages/playground/ChartsPage"
 import { NotFoundPage } from "@/pages/NotFoundPage"
@@ -17,6 +18,9 @@ function App() {
       <Route path="/" element={<AppLayout />}>
         {/* Index ("/") → Dashboard */}
         <Route index element={<DashboardPage />} />
+        
+        {/* "create-tool" new form route */}
+        <Route path="create-tool" element={<CreateToolPage />} />
 
         {/* "/layout-sandbox" → layout sandbox page */}
         <Route path="layout-sandbox" element={<LayoutSandboxPage />} />

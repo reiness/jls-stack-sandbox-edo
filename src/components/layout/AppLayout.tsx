@@ -19,6 +19,12 @@ const navGroups = [
     ],
   },
   {
+    label: "Workspace",
+    items: [
+      { label: "Create Tool", to: "/create-tool", badge: "New" },
+    ],
+  },
+  {
     label: "System",
     items: [
       { label: "Settings", to: "/settings" },
