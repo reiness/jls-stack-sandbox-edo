@@ -20,7 +20,7 @@ export function QualityPage() {
               </p>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div className="rounded-lg bg-primary p-4 text-center text-md font-bold text-primary-foreground shadow-hard-sm">Primary</div>
-                <div className="rounded-lg bg-secondary p-4 text-center text-md font-bold text-secondary-foreground shadow-hard-sm">Accent</div>
+                <div className="rounded-lg bg-accent p-4 text-center text-md font-bold text-accent-foreground shadow-hard-sm">Accent</div>
                 <div className="rounded-lg bg-background p-4 text-center text-md font-bold text-foreground border-2 border-border shadow-hard-sm">Canvas</div>
                 <div className="rounded-lg bg-destructive p-4 text-center text-md font-bold text-destructive-foreground shadow-hard-sm">Danger</div>
               </div>
