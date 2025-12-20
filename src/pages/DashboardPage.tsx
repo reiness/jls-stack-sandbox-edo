@@ -1,4 +1,4 @@
-import { BadgePill } from "../components/common/BadgePill"
+import { QualityBadge } from "../components/common/QualityBadge"
 import { InlineAlert } from "../components/common/InlineAlert"
 import { PageHeader } from "../components/common/PageHeader"
 import { StatsRow } from "../components/dashboard/StatsRow"
@@ -23,18 +23,39 @@ export function DashboardPage() {
       <StatsRow 
         stats={[
           { label: "Routes", value: "3+" },
-          { label: "Shell", value: <BadgePill label="Online" tone="default" /> },
-          { label: "UI System", value: <BadgePill label="Growing" tone="subtle" /> },
+          { label: "Shell", value: <QualityBadge label="Online" status="pass" /> },
+          { label: "UI System", value: <QualityBadge label="Polished" status="pass" /> },
         ]} 
       />
 
-      <div className="pt-4">
-        <InlineAlert 
-          title="Routing is working!" 
-          message="Check out the Playground to experiment with more components." 
-          tone="success" 
-        />
-      </div>
+      <SectionCard title="Quick Actions" description="Jumpstart your workflow.">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <Button variant="outline" className="h-24 flex-col gap-2 border-2 border-dashed border-border/60 hover:border-primary hover:bg-primary/5" asChild>
+            <a href="/create-tool">
+              <span className="text-2xl">🛠️</span>
+              <span className="font-bold">New Tool</span>
+            </a>
+          </Button>
+          <Button variant="outline" className="h-24 flex-col gap-2 border-2 border-dashed border-border/60 hover:border-accent hover:bg-accent/5" asChild>
+            <a href="/quality">
+              <span className="text-2xl">💎</span>
+              <span className="font-bold">Quality Check</span>
+            </a>
+          </Button>
+          <Button variant="outline" className="h-24 flex-col gap-2 border-2 border-dashed border-border/60 hover:border-destructive hover:bg-destructive/5" asChild>
+            <a href="/settings">
+              <span className="text-2xl">⚙️</span>
+              <span className="font-bold">Settings</span>
+            </a>
+          </Button>
+          <Button variant="outline" className="h-24 flex-col gap-2 border-2 border-dashed border-border/60 hover:border-secondary hover:bg-secondary/5" asChild>
+            <a href="/help">
+              <span className="text-2xl">📚</span>
+              <span className="font-bold">Docs</span>
+            </a>
+          </Button>
+        </div>
+      </SectionCard>
 
       <SectionCard title="Tools Overview" description="Manage your custom utilities.">
         <EmptyState

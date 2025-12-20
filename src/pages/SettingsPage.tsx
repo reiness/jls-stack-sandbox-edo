@@ -161,6 +161,23 @@ export function SettingsPage() {
           </div>
         </div>
 
+        {/* Danger Zone */}
+        <SectionCard title="Danger Zone" description="Irreversible account actions.">
+          <div className="rounded-xl border-2 border-destructive/20 bg-destructive/5 p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="font-bold text-red-700">Delete Account</h4>
+                <p className="text-sm text-muted-foreground font-bold">
+                  Once you delete your account, there is no going back.
+                </p>
+              </div>
+              <Button variant="destructive" size="sm" type="button">
+                Delete Personal Account
+              </Button>
+            </div>
+          </div>
+        </SectionCard>
+
         <div className="flex justify-end gap-3 pt-4 border-t-2 border-border/10">
           <Button 
             type="button" 

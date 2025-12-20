@@ -11,6 +11,7 @@ import { CreateToolPage } from "@/pages/CreateToolPage"
 import { FormsPage } from "@/pages/playground/FormsPage"
 import { ChartsPage } from "@/pages/playground/ChartsPage"
 import { NotFoundPage } from "@/pages/NotFoundPage"
+import { QualityPage } from "@/pages/QualityPage"
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="activity" element={<ActivityPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="components" element={<ComponentsPage />} />
+        <Route path="quality" element={<QualityPage />} />
         <Route path="playground" element={<PlaygroundPage />}>
           <Route index element={<Navigate to="forms" replace />} />
           <Route path="forms" element={<FormsPage />} />

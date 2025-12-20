@@ -84,6 +84,7 @@ export function LayoutSandbox() {
                     type="text"
                     defaultValue="My Awesome Project"
                     className="w-full bg-input border-2 border-border rounded-xl px-3 py-2 text-foreground text-sm focus:outline-none focus:border-primary font-medium"
+                    aria-label="Project Title"
                   />
                 </div>
                 <div className="pt-4">

@@ -2,6 +2,8 @@ import { useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { SkipToMain } from "../common/SkipToMain"
+import { PageTransition } from "./PageTransition"
 
 const navGroups = [
   {
@@ -29,6 +31,7 @@ const navGroups = [
     items: [
       { label: "Settings", to: "/settings" },
       { label: "Components", to: "/components", badge: "Dev" },
+      { label: "Quality", to: "/quality" },
       { label: "Help", to: "/help" },
     ],
   },
@@ -39,6 +42,7 @@ export function AppLayout() {
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground font-['Fredoka']">
+      <SkipToMain />
       {/* Topbar - Fixed height, no scroll */}
       <header className="z-30 flex h-16 shrink-0 items-center justify-between border-b-2 border-border bg-card/80 backdrop-blur px-4 lg:px-6">
         <div className="flex items-center gap-3">
@@ -192,9 +196,11 @@ export function AppLayout() {
         )}
 
         {/* Main content (scrollable) */}
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" className="flex-1 overflow-y-auto">
           <div className="mx-auto max-w-7xl p-6 lg:p-10">
-            <Outlet />
+            <PageTransition>
+              <Outlet />
+            </PageTransition>
           </div>
         </main>
       </div>
