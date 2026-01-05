@@ -10,6 +10,7 @@ import { PlaygroundPage } from "@/pages/PlaygroundPage"
 import { CreateToolPage } from "@/pages/CreateToolPage"
 import { FormsPage } from "@/pages/playground/FormsPage"
 import { ChartsPage } from "@/pages/playground/ChartsPage"
+import { DataPage } from "@/pages/playground/DataPage"
 import { NotFoundPage } from "@/pages/NotFoundPage"
 import { QualityPage } from "@/pages/QualityPage"
 
@@ -36,6 +37,7 @@ function App() {
           <Route index element={<Navigate to="forms" replace />} />
           <Route path="forms" element={<FormsPage />} />
           <Route path="charts" element={<ChartsPage />} />
+          <Route path="data" element={<DataPage />} />
         </Route>
 
         {/* Catch-all route */}

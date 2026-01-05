@@ -33,6 +33,18 @@ export function PlaygroundPage() {
         >
           Charts
         </NavLink>
+        <NavLink
+          to="/playground/data"
+          className={({ isActive }) =>
+            `px-4 py-2 rounded-lg transition-all border-2 text-sm font-bold ${
+              isActive 
+                ? "bg-primary text-primary-foreground border-border shadow-hard translate-y-[-2px]" 
+                : "border-transparent text-muted-foreground hover:text-accent-foreground hover:bg-accent"
+            }`
+          }
+        >
+          Data
+        </NavLink>
       </div>
       <Outlet />
     </div>
