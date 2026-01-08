@@ -13,6 +13,7 @@ import { ChartsPage } from "@/pages/playground/ChartsPage"
 import { DataPage } from "@/pages/playground/DataPage"
 import { NotFoundPage } from "@/pages/NotFoundPage"
 import { QualityPage } from "@/pages/QualityPage"
+import IdeasPage from "./pages/IdeasPage"
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
       <Route path="/" element={<AppLayout />}>
         {/* Index ("/") → Dashboard */}
         <Route index element={<DashboardPage />} />
+        
+        {/* "ideas" list route */}
+        <Route path="ideas" element={<IdeasPage />} />
         
         {/* "create-tool" new form route */}
         <Route path="create-tool" element={<CreateToolPage />} />

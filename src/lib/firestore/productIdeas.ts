@@ -10,9 +10,12 @@ import {
   query,
   where,
   orderBy,
+  limit,
+  startAfter,
   serverTimestamp,
   writeBatch,
   Timestamp,
+  DocumentSnapshot,
 } from "firebase/firestore"
 import type { ProductIdea, ProductIdeaNote, ProductIdeaStatus, ProductIdeaPriority } from "@/types/productIdeas"
 
@@ -312,6 +315,57 @@ export async function getFilteredProductIdeas(
     id: doc.id,
     ...doc.data(),
   })) as ProductIdea[]
+}
+
+// Get product ideas with pagination and filtering
+export async function getProductIdeasPaginated(
+  pageSize: number = 5,
+  lastDoc?: DocumentSnapshot,
+  filters: ProductIdeaFilters = {}
+): Promise<{ 
+  ideas: ProductIdea[], 
+  lastDoc: DocumentSnapshot | null, 
+  hasMore: boolean 
+}> {
+  // Start with a base query
+  let q = query(productIdeasCol(), orderBy("createdAt", "desc"))
+  
+  // Apply filters
+  if (filters.status) {
+    q = query(q, where("status", "==", filters.status))
+  }
+  
+  if (filters.ownerId) {
+    q = query(q, where("ownerId", "==", filters.ownerId))
+  }
+  
+  if (filters.tag) {
+    q = query(q, where("tags", "array-contains", filters.tag))
+  }
+
+  // Apply pagination start point
+  if (lastDoc) {
+    q = query(q, startAfter(lastDoc))
+  }
+
+  // Apply limit (fetch one extra to check for hasMore)
+  q = query(q, limit(pageSize + 1))
+  
+  const snapshot = await getDocs(q)
+  
+  const ideas = snapshot.docs.slice(0, pageSize).map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as ProductIdea[]
+
+  const hasMore = snapshot.docs.length > pageSize
+  const lastVisible = snapshot.docs.length > 0 ? snapshot.docs[ideas.length - 1] : null
+
+  return {
+    ideas,
+    lastDoc: lastVisible,
+    hasMore,
+  }
 }
 
 // Get notes for a specific idea

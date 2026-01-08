@@ -10,6 +10,7 @@ const navGroups = [
     label: "Main",
     items: [
       { label: "Dashboard", to: "/" },
+      { label: "Ideas", to: "/ideas", badge: "New" },
       { label: "Activity", to: "/activity", badge: "3" },
     ],
   },
