@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==========================================
+    // DEVELOPMENT RULES - REMOVE BEFORE PRODUCTION
+    // These rules allow unauthenticated access for testing because
+    // we haven't implemented Firebase Auth yet.
+    //
+    // RISKS:
+    // - Anyone can read/write your data
+    // - No data validation is enforced
+    // - Malicious users could delete your database
+    //
+    // TODO:
+    // 1. Implement Firebase Authentication in the app
+    // 2. Delete this entire block
+    // 3. Uncomment the PRODUCTION RULES block below
+    // ==========================================
+    
+    match /productIdeas/{ideaId} {
+      allow read, write: if true;
+      
+      match /notes/{noteId} {
+        allow read, write: if true;
+      }
+    }
+
+    // ==========================================
+    // PRODUCTION RULES (commented out for now)
+    // Uncomment these when Firebase Auth is implemented
+    // ==========================================
+    
+    // // --- Helper Functions ---
+    // 
+    // function isAuthenticated() {
+    //   return request.auth != null;
+    // }
+    //
+    // function isOwner(data) {
+    //   return isAuthenticated() && request.auth.uid == data.ownerId;
+    // }
+    //
+    // function isAuthor(data) {
+    //   return isAuthenticated() && request.auth.uid == data.authorId;
+    // }
+    //
+    // function isValidProductIdea(data) {
+    //   return data.title is string 
+    //       && data.title.size() > 0 
+    //       && data.title.size() < 100
+    //       && data.status in ['draft', 'active', 'paused', 'shipped']
+    //       && data.ownerId is string;
+    // }
+    //
+    // // Product Ideas rules
+    // match /productIdeas/{ideaId} {
+    //   // Read: Allow if user is authenticated
+    //   allow read: if isAuthenticated();
+    //   
+    //   // Create: Allow if user is authenticated AND user ID matches ownerId AND data is valid
+    //   allow create: if isOwner(request.resource.data) 
+    //                 && isValidProductIdea(request.resource.data);
+    //   
+    //   // Update: Allow if user is authenticated AND user ID matches ownerId AND data is valid
+    //   allow update: if isOwner(resource.data) 
+    //                 && isValidProductIdea(request.resource.data);
+    //   
+    //   // Delete: Allow if user is authenticated AND user ID matches ownerId
+    //   allow delete: if isOwner(resource.data);
+    //   
+    //   // Notes subcollection rules
+    //   match /notes/{noteId} {
+    //     // Read: Allow if user is authenticated
+    //     allow read: if isAuthenticated();
+    //     
+    //     // Create: Allow if user is authenticated AND user ID matches authorId
+    //     allow create: if isAuthor(request.resource.data);
+    //     
+    //     // Update: Deny all (for now)
+    //     allow update: if false;
+    //
+    //     // Delete: Allow if user is authenticated AND user ID matches authorId
+    //     allow delete: if isAuthor(resource.data);
+    //   }
+    // }
+    
+  }
+}
