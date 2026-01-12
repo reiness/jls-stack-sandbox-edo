@@ -19,22 +19,39 @@ service cloud.firestore {
     function isCreatingOwned() {
       return isUser(request.resource.data.ownerId);
     }
+
+    // NEW: check if the user is an admin
+    function isAdmin() {
+      return request.auth.token.admin == true;
+    }
     
+    // Fixed by: Added comprehensive validation for all schema fields (Section 8.3 & 8.7)
+    // Fixed by: Using .get() for optional fields to avoid undefined property errors
     function isValidProductIdea(data) {
-      return data.keys().hasAll(['title', 'status', 'tags', 'ownerId'])
+      return data.keys().hasAll(['title', 'status', 'tags', 'ownerId', 'summary', 'createdAt', 'updatedAt'])
           && data.title is string 
           && data.title.size() > 0 
           && data.title.size() < 100
+          && data.summary is string
+          && data.summary.size() <= 1000
           && data.status in ['draft', 'active', 'paused', 'shipped']
+          && (data.get('priority', null) == null || data.get('priority', null) in ['low', 'medium', 'high'])
           && data.tags is list && data.tags.size() <= 10
-          && data.ownerId is string;
+          && data.ownerId is string
+          && (data.get('assigneeId', null) == null || data.get('assigneeId', null) is string)
+          && (data.get('targetDate', null) == null || data.get('targetDate', null) is timestamp)
+          && data.createdAt is timestamp
+          && data.updatedAt is timestamp;
     }
 
+    // Fixed by: Added validation for authorId and createdAt (Section 8.3)
     function isValidNote(data) {
-      return data.keys().hasAll(['body', 'authorId'])
+      return data.keys().hasAll(['body', 'authorId', 'createdAt'])
           && data.body is string
-          && data.body.size() > 0
-          && data.body.size() < 2000;
+          && data.body.size() > 0 
+          && data.body.size() < 2000
+          && data.authorId is string
+          && data.createdAt is timestamp;
     }
 
     // --- Collection Rules ---
@@ -47,25 +64,28 @@ service cloud.firestore {
       allow create: if isCreatingOwned() 
                     && isValidProductIdea(request.resource.data);
       
-      // Update: Allow if user owns the document AND data is valid
-      allow update: if isOwner() 
-                    && isValidProductIdea(request.resource.data);
+      // Update: 
+      // 1. Owner can update ONLY IF they don't change the ownerId or createdAt (Fixed by: Added immutability checks Section 8.2)
+      // 2. OR Admin can update
+      allow update: if (
+                        (
+                          isOwner() 
+                          && request.resource.data.ownerId == resource.data.ownerId
+                          && request.resource.data.createdAt == resource.data.createdAt
+                        )
+                        || isAdmin()
+                       ) 
+                       && isValidProductIdea(request.resource.data);
       
       // Delete: Allow if user owns the document
       allow delete: if isOwner();
       
       // Notes subcollection rules
       match /notes/{noteId} {
-        // Read: Allow if user is authenticated
         allow read: if isSignedIn();
-        
-        // Create: Allow if user is creating a note as the author
+        // Fixed by: Ensuring note creator is the author (Section 8.2)
         allow create: if isUser(request.resource.data.authorId) && isValidNote(request.resource.data);
-        
-        // Update: Deny all (append-only)
         allow update: if false;
-
-        // Delete: Allow if user is the author
         allow delete: if isUser(resource.data.authorId);
       }
     }
