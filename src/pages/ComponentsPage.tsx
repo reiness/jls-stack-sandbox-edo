@@ -46,7 +46,7 @@ export function ComponentsPage() {
           <InfoRow label="Version" value="1.0.0" />
           <InfoRow
             label="Status"
-            value={<BadgePill label="Active" tone="default" />}
+            value={<BadgePill label="Active" variant="accent" />}
           />
           <InfoRow
             label="Plan"
@@ -70,10 +70,16 @@ export function ComponentsPage() {
       </SectionCard>
 
        {/* Badges */}
-       <SectionCard title="Badges" description="Simple status indicators.">
-        <div className="flex gap-4">
-          <BadgePill label="Default Badge" tone="default" />
-          <BadgePill label="Subtle Badge" tone="subtle" />
+       <SectionCard title="Badges" description="Simple status indicators with brand variants.">
+        <div className="flex flex-wrap gap-4">
+          <BadgePill label="Primary (Purple)" variant="primary" />
+          <BadgePill label="Accent (Sky)" variant="accent" />
+          <BadgePill label="Destructive (Red)" variant="destructive" />
+          <BadgePill label="Secondary (Gray)" variant="secondary" />
+          <BadgePill label="Outline (Transparent)" variant="outline" />
+          <BadgePill label="Success (Green)" variant="success" />
+          <BadgePill label="Warning (Yellow)" variant="warning" />
+          <BadgePill label="Info (Light Sky)" variant="info" />
         </div>
       </SectionCard>
     </div>

@@ -17,7 +17,11 @@ import {
   Timestamp,
   DocumentSnapshot,
 } from "firebase/firestore"
+import { faker } from "@faker-js/faker"
 import type { ProductIdea, ProductIdeaNote, ProductIdeaStatus, ProductIdeaPriority } from "@/types/productIdeas"
+
+// Export opaque cursor type for pagination to keep UI clean of Firestore imports
+export type ProductIdeaCursor = DocumentSnapshot
 
 // Collection references
 export function productIdeasCol() {
@@ -56,101 +60,56 @@ export async function seedProductIdeas(ownerId: string = "user-123") {
   const getRandomDevId = () => devs[Math.floor(Math.random() * devs.length)].id
   
   const getRandomTargetDate = () => {
-    const date = new Date()
-    // Random months between 1 and 3
-    const monthsToAdd = Math.floor(Math.random() * 3) + 1
-    date.setMonth(date.getMonth() + monthsToAdd)
+    const date = faker.date.future()
     return Timestamp.fromDate(date)
   }
 
-  const ideas = [
-    {
-      title: "Customer Feedback Dashboard",
-      summary: "A central hub to aggregate and analyze customer feedback from multiple channels.",
-      status: "active",
-      priority: "high",
-      tags: ["analytics", "customer-success"],
-      ownerId,
-      assigneeId: getRandomDevId(),
-      targetDate: getRandomTargetDate(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-    {
-      title: "Employee Onboarding Tracker",
-      summary: "A tool to track the progress of new hires through their onboarding checklist.",
-      status: "active",
-      priority: "medium",
-      tags: ["hr", "internal-tools"],
-      ownerId,
-      assigneeId: getRandomDevId(),
-      targetDate: getRandomTargetDate(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-    {
-      title: "Inventory Management System",
-      summary: "Real-time tracking of office supplies and equipment.",
-      status: "draft",
-      priority: "low",
-      tags: ["operations", "logistics"],
-      ownerId,
-      assigneeId: getRandomDevId(),
-      targetDate: getRandomTargetDate(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-    {
-      title: "Meeting Notes Archive",
-      summary: "Searchable database of all past meeting notes and action items.",
-      status: "shipped",
-      priority: "medium",
-      tags: ["productivity", "knowledge-management"],
-      ownerId,
-      assigneeId: getRandomDevId(),
-      targetDate: getRandomTargetDate(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-    {
-      title: "Team Availability Calendar",
-      summary: "Visual calendar showing team member availability, time off, and meeting blocks.",
-      status: "paused",
-      priority: "low",
-      tags: ["scheduling", "collaboration"],
-      ownerId,
-      assigneeId: getRandomDevId(),
-      targetDate: getRandomTargetDate(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    },
-  ]
+  const statuses: ProductIdeaStatus[] = ["draft", "active", "paused", "shipped"]
+  const priorities: ProductIdeaPriority[] = ["low", "medium", "high"]
+  const possibleTags = ["analytics", "customer-success", "hr", "internal-tools", "operations", "logistics", "productivity", "ai", "mobile", "design"]
 
-  ideas.forEach((idea, index) => {
+  // Generate 7 ideas to be safe and varied
+  const ideasCount = 7
+  
+  for (let i = 0; i < ideasCount; i++) {
     const newDocRef = doc(productIdeasCol())
+    
+    // Pick random tags (1 to 3)
+    const tagsCount = Math.floor(Math.random() * 3) + 1
+    const tags = faker.helpers.arrayElements(possibleTags, tagsCount)
+
+    const idea = {
+      title: faker.company.catchPhrase(),
+      summary: faker.commerce.productDescription(),
+      status: faker.helpers.arrayElement(statuses),
+      priority: faker.helpers.arrayElement(priorities),
+      tags: tags,
+      ownerId,
+      assigneeId: getRandomDevId(),
+      targetDate: getRandomTargetDate(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }
+
     batch.set(newDocRef, idea)
 
-    // Add 2 notes to the first 2 ideas (index 0 and 1)
-    if (index < 2) {
+    // Add notes to the first 3 ideas (ensure at least 2 have notes)
+    if (i < 3) {
       const notesPath = `productIdeas/${newDocRef.id}/notes`
-      // We can use the collection helper approach or just build the path manually for the batch
-      // Since we need to create a doc ref inside the subcollection:
-      const note1Ref = doc(collection(db, notesPath))
-      const note2Ref = doc(collection(db, notesPath))
-
-      batch.set(note1Ref, {
-        body: "Research competitor pricing models.",
-        authorId: ownerId,
-        createdAt: serverTimestamp(),
-      })
-
-      batch.set(note2Ref, {
-        body: "Schedule meeting with the design team.",
-        authorId: ownerId,
-        createdAt: serverTimestamp(),
-      })
+      
+      // Add 2-4 notes
+      const notesCount = Math.floor(Math.random() * 3) + 2
+      
+      for (let j = 0; j < notesCount; j++) {
+        const noteRef = doc(collection(db, notesPath))
+        batch.set(noteRef, {
+          body: faker.hacker.phrase(),
+          authorId: ownerId, // Keeping same author for simplicity as per requirements
+          createdAt: serverTimestamp(),
+        })
+      }
     }
-  })
+  }
 
   await batch.commit()
 }
@@ -320,12 +279,12 @@ export async function getFilteredProductIdeas(
 // Get product ideas with pagination and filtering
 export async function getProductIdeasPaginated(
   pageSize: number = 5,
-  lastDoc?: DocumentSnapshot,
+  lastDoc?: ProductIdeaCursor,
   filters: ProductIdeaFilters = {}
-): Promise<{ 
-  ideas: ProductIdea[], 
-  lastDoc: DocumentSnapshot | null, 
-  hasMore: boolean 
+): Promise<{
+  ideas: ProductIdea[],
+  lastDoc: ProductIdeaCursor | null,
+  hasMore: boolean
 }> {
   // Start with a base query
   let q = query(productIdeasCol(), orderBy("createdAt", "desc"))

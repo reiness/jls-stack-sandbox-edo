@@ -57,8 +57,8 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /productIdeas/{ideaId} {
-      // Read: Allow if user is authenticated
-      allow read: if isSignedIn();
+      // Read: Allow if user is authenticated and is the owner
+      allow read: if isOwner();
       
       // Create: Allow if user is creating a document they'll own AND data is valid
       allow create: if isCreatingOwned() 

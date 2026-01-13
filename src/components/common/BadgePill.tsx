@@ -1,18 +1,26 @@
-type Tone = "default" | "subtle"
+type BadgeVariant = "primary" | "accent" | "destructive" | "secondary" | "outline" | "success" | "warning" | "info"
 
 type BadgePillProps = {
   label: string
-  tone?: Tone
+  variant?: BadgeVariant
 }
 
-export function BadgePill({ label, tone = "default" }: BadgePillProps) {
-  const cls =
-    tone === "default"
-      ? "bg-accent/20 text-foreground border-accent"
-      : "bg-muted text-muted-foreground border-border"
+export function BadgePill({ label, variant = "outline" }: BadgePillProps) {
+  const baseClasses = "inline-flex items-center border-2 border-border px-2 py-0.5 text-xs font-black rounded-lg transition-all"
+  
+  const variantClasses = {
+    primary: "bg-primary text-primary-foreground shadow-hard-sm",
+    accent: "bg-accent text-accent-foreground shadow-hard-sm",
+    destructive: "bg-destructive text-destructive-foreground shadow-hard-sm",
+    secondary: "bg-muted text-muted-foreground shadow-hard-sm",
+    outline: "bg-transparent text-foreground shadow-none",
+    success: "bg-emerald-400 text-black shadow-hard-sm",
+    warning: "bg-amber-400 text-black shadow-hard-sm",
+    info: "bg-sky-300 text-black shadow-hard-sm"
+  }
 
   return (
-    <span className={`inline-flex items-center rounded-full border-2 px-2 py-0.5 text-xs font-bold ${cls}`}>
+    <span className={`${baseClasses} ${variantClasses[variant]}`}>
       {label}
     </span>
   )

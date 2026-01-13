@@ -2,6 +2,14 @@ import { useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { useUser } from "@/lib/context/UserContext"
 import { SkipToMain } from "../common/SkipToMain"
 import { PageTransition } from "./PageTransition"
 
@@ -40,6 +48,15 @@ const navGroups = [
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { setUserId, user } = useUser()
+
+  const getUserKey = () => {
+    if (user?.email === "user123@example.com") return "user-123"
+    if (user?.email === "someone@example.com") return "someone-else"
+    return "anonymous"
+  }
+
+  const currentUserKey = getUserKey()
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground font-['Fredoka']">
@@ -84,9 +101,19 @@ export function AppLayout() {
             Feedback
           </Button>
 
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-muted text-xs font-bold shadow-hard-sm">
-            ED
-          </div>
+          <Select value={currentUserKey} onValueChange={setUserId}>
+            <SelectTrigger className="relative z-50 cursor-pointer h-9 w-auto px-3 border-2 border-border shadow-hard-sm bg-background data-[state=open]:bg-accent font-bold">
+              <SelectValue className="hidden" />
+              <span>
+                {currentUserKey === "user-123" ? "(U1)" :
+                 currentUserKey === "someone-else" ? "(SE)" : "(Anon)"}
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="user-123">User 123</SelectItem>
+              <SelectItem value="someone-else">Someone Else</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Mobile menu button */}

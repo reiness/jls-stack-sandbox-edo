@@ -85,9 +85,17 @@ describe("productIdeas collection", () => {
     await assertFails(getDoc(doc(db, "productIdeas", "idea-1")))
   })
   
-  test("2. Authenticated users can read ideas", async () => {
+  test("2. Authenticated users cannot read others' ideas", async () => {
     await setupTestData(async (db) => {
       await setDoc(doc(db, "productIdeas", "idea-1"), createTestIdea("other-user"))
+    })
+    const db = testEnv.authenticatedContext("user-1").firestore()
+    await assertFails(getDoc(doc(db, "productIdeas", "idea-1")))
+  })
+
+  test("2b. Authenticated users can read their own ideas", async () => {
+    await setupTestData(async (db) => {
+      await setDoc(doc(db, "productIdeas", "idea-1"), createTestIdea("user-1"))
     })
     const db = testEnv.authenticatedContext("user-1").firestore()
     await assertSucceeds(getDoc(doc(db, "productIdeas", "idea-1")))
