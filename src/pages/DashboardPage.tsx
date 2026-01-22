@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 import { QualityBadge } from "../components/common/QualityBadge"
 import { InlineAlert } from "../components/common/InlineAlert"
 import { PageHeader } from "../components/common/PageHeader"
@@ -5,8 +7,32 @@ import { StatsRow } from "../components/dashboard/StatsRow"
 import { SectionCard } from "../components/common/SectionCard"
 import { EmptyState } from "../components/common/EmptyState"
 import { Button } from "../components/ui/button"
+import { BadgePill } from "../components/common/BadgePill"
+import { listActiveIdeas } from "@/lib/firestore/productIdeas"
+import type { ProductIdea } from "@/types/productIdeas"
+import { useUser } from "@/lib/context/UserContext"
 
 export function DashboardPage() {
+  const { userId } = useUser()
+  const [ideas, setIdeas] = useState<ProductIdea[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!userId) return
+    
+    console.log("DashboardPage: Fetching active ideas for user:", userId)
+    listActiveIdeas(userId).then((data) => {
+      console.log("DashboardPage: Successfully fetched ideas:", data.length)
+      setIdeas(data.slice(0, 5)) // Show only top 5
+      setLoading(false)
+    }).catch(err => {
+      console.error("DashboardPage: Error fetching ideas:", err)
+      setError(`Failed to load ideas: ${err.message}`)
+      setLoading(false)
+    })
+  }, [userId])
+
   return (
     <div className="space-y-8">
       <PageHeader 
@@ -55,6 +81,59 @@ export function DashboardPage() {
             </a>
           </Button>
         </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Product Ideas"
+        description="Latest active ideas from the team."
+        actions={
+          <Button asChild size="sm" variant="default">
+            <Link to="/ideas/new">New Idea</Link>
+          </Button>
+        }
+      >
+        {loading ? (
+          <div className="p-8 text-center animate-pulse text-muted-foreground font-bold">
+            Loading ideas...
+          </div>
+        ) : error ? (
+          <div className="p-4">
+            <InlineAlert tone="danger" title="Error" message={error} />
+          </div>
+        ) : ideas.length > 0 ? (
+          <div className="divide-y divide-border border-2 border-border rounded-xl overflow-hidden bg-background shadow-hard-sm">
+            {ideas.map((idea) => (
+              <Link
+                key={idea.id}
+                to={`/ideas/${idea.id}`}
+                className="flex items-center justify-between p-4 hover:bg-muted transition-colors group"
+              >
+                <div className="space-y-1">
+                  <h4 className="font-black group-hover:text-primary transition-colors">{idea.title}</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {idea.tags.map(tag => (
+                      <BadgePill key={tag} label={tag} variant="secondary" />
+                    ))}
+                  </div>
+                </div>
+                <BadgePill
+                  label={idea.status.toUpperCase()}
+                  variant={idea.status === "shipped" ? "success" : "outline"}
+                />
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            title="No Ideas Found"
+            description="Start by creating your first product idea."
+            action={
+              <Button asChild size="sm">
+                <Link to="/ideas/new">Create Idea</Link>
+              </Button>
+            }
+          />
+        )}
       </SectionCard>
 
       <SectionCard title="Tools Overview" description="Manage your custom utilities.">

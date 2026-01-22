@@ -13,7 +13,7 @@ service cloud.firestore {
     }
 
     function isOwner() {
-      return isUser(resource.data.ownerId);
+      return isUser(resource.data.get('ownerId', null));
     }
 
     function isCreatingOwned() {
@@ -85,7 +85,7 @@ service cloud.firestore {
         allow read: if isSignedIn();
         // Fixed by: Ensuring note creator is the author (Section 8.2)
         allow create: if isUser(request.resource.data.authorId) && isValidNote(request.resource.data);
-        allow update: if false;
+        allow update: if isUser(resource.data.authorId) && isValidNote(request.resource.data);
         allow delete: if isUser(resource.data.authorId);
       }
     }

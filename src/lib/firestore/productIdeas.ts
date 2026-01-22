@@ -8,11 +8,11 @@ import {
   getDoc,
   getDocs,
   query,
-  where,
   orderBy,
+  serverTimestamp,
+  where,
   limit,
   startAfter,
-  serverTimestamp,
   writeBatch,
   Timestamp,
   DocumentSnapshot,
@@ -20,22 +20,114 @@ import {
 import { faker } from "@faker-js/faker"
 import type { ProductIdea, ProductIdeaNote, ProductIdeaStatus, ProductIdeaPriority } from "@/types/productIdeas"
 
-// Export opaque cursor type for pagination to keep UI clean of Firestore imports
-export type ProductIdeaCursor = DocumentSnapshot
+// --- TYPES (From New Update) ---
+// Note: These align with @/types/productIdeas but are re-exported or used locally for the snippet logic.
+export type { ProductIdea, ProductIdeaStatus }
 
-// Collection references
-export function productIdeasCol() {
-  return collection(db, "productIdeas")
+// --- COLLECTION REFERENCE ---
+const ideasCol = collection(db, "productIdeas")
+
+// --- HELPER (From New Update) ---
+function normalizeIdea(id: string, data: Record<string, unknown>): ProductIdea {
+  return {
+    id,
+    title: (data.title as string) ?? "",
+    summary: (data.summary as string) ?? "",
+    status: (data.status as ProductIdeaStatus) ?? "draft",
+    tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
+    ownerId: (data.ownerId as string) ?? "",
+    createdAt: data.createdAt as Timestamp,
+    updatedAt: data.updatedAt as Timestamp,
+    archivedAt: (data.archivedAt as Timestamp) ?? null,
+    // Merge existing features: preserve fields used in current UI
+    priority: (data.priority as ProductIdeaPriority) ?? "medium",
+    assigneeId: data.assigneeId as string | undefined,
+    targetDate: data.targetDate as Timestamp | undefined,
+  }
 }
 
-// Simple "hello world" write to prove the pipeline
+// --- NEW CRUD API (Newest Update) ---
+
+export async function listActiveIdeas(ownerId?: string): Promise<ProductIdea[]> {
+  // Active = not archived
+  let q = query(ideasCol, where("archivedAt", "==", null), orderBy("updatedAt", "desc"))
+  
+  if (ownerId) {
+    q = query(q, where("ownerId", "==", ownerId))
+  }
+
+  console.log("listActiveIdeas: Executing query...", { ownerId })
+  const snap = await getDocs(q)
+  return snap.docs.map(d => normalizeIdea(d.id, d.data()))
+}
+
+export async function getIdeaById(id: string): Promise<ProductIdea | null> {
+  const ref = doc(db, "productIdeas", id)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) return null
+  return normalizeIdea(snap.id, snap.data())
+}
+
+export async function createIdea(input: {
+  title: string
+  summary: string
+  status: ProductIdeaStatus
+  tags: string[]
+  ownerId: string
+}) {
+  // addDoc is the standard way to create a doc with an auto-id
+  return addDoc(ideasCol, {
+    ...input,
+    archivedAt: null,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function updateIdea(
+  id: string,
+  patch: Partial<Pick<ProductIdea, "title" | "summary" | "status" | "tags">>
+) {
+  const ref = doc(db, "productIdeas", id)
+  // updateDoc updates selected fields
+  return updateDoc(ref, {
+    ...patch,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function archiveIdea(id: string) {
+  const ref = doc(db, "productIdeas", id)
+  return updateDoc(ref, {
+    archivedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+}
+
+export async function restoreIdea(id: string) {
+  const ref = doc(db, "productIdeas", id)
+  return updateDoc(ref, {
+    archivedAt: null,
+    updatedAt: serverTimestamp(),
+  })
+}
+
+// --- EXISTING FEATURES (Preserved) ---
+
+export type ProductIdeaCursor = DocumentSnapshot
+
+export function productIdeasCol() {
+  return ideasCol
+}
+
 export async function createHelloIdea(ownerId: string) {
-  return addDoc(productIdeasCol(), {
+  return addDoc(ideasCol, {
     title: "Hello Firestore",
     summary: "This is a proof document created in Lesson 3.1.",
     status: "draft",
     tags: ["week-3", "intro"],
     ownerId,
+    archivedAt: null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
@@ -43,7 +135,6 @@ export async function createHelloIdea(ownerId: string) {
 
 export async function seedProductIdeas(ownerId: string = "user-123") {
   const batch = writeBatch(db)
-  
   const devs = [
     { id: "dev-001", name: "Alex Rivera" },
     { id: "dev-002", name: "Jordan Smith" },
@@ -56,61 +147,40 @@ export async function seedProductIdeas(ownerId: string = "user-123") {
     { id: "dev-009", name: "Charlie Bell" },
     { id: "dev-010", name: "Robin West" }
   ]
-
   const getRandomDevId = () => devs[Math.floor(Math.random() * devs.length)].id
-  
-  const getRandomTargetDate = () => {
-    const date = faker.date.future()
-    return Timestamp.fromDate(date)
-  }
-
+  const getRandomTargetDate = () => Timestamp.fromDate(faker.date.future())
   const statuses: ProductIdeaStatus[] = ["draft", "active", "paused", "shipped"]
   const priorities: ProductIdeaPriority[] = ["low", "medium", "high"]
   const possibleTags = ["analytics", "customer-success", "hr", "internal-tools", "operations", "logistics", "productivity", "ai", "mobile", "design"]
 
-  // Generate 7 ideas to be safe and varied
-  const ideasCount = 7
-  
-  for (let i = 0; i < ideasCount; i++) {
-    const newDocRef = doc(productIdeasCol())
-    
-    // Pick random tags (1 to 3)
-    const tagsCount = Math.floor(Math.random() * 3) + 1
-    const tags = faker.helpers.arrayElements(possibleTags, tagsCount)
-
+  for (let i = 0; i < 7; i++) {
+    const newDocRef = doc(ideasCol)
     const idea = {
       title: faker.company.catchPhrase(),
       summary: faker.commerce.productDescription(),
       status: faker.helpers.arrayElement(statuses),
       priority: faker.helpers.arrayElement(priorities),
-      tags: tags,
+      tags: faker.helpers.arrayElements(possibleTags, Math.floor(Math.random() * 3) + 1),
       ownerId,
       assigneeId: getRandomDevId(),
       targetDate: getRandomTargetDate(),
+      archivedAt: null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     }
-
     batch.set(newDocRef, idea)
-
-    // Add notes to the first 3 ideas (ensure at least 2 have notes)
     if (i < 3) {
       const notesPath = `productIdeas/${newDocRef.id}/notes`
-      
-      // Add 2-4 notes
-      const notesCount = Math.floor(Math.random() * 3) + 2
-      
-      for (let j = 0; j < notesCount; j++) {
+      for (let j = 0; j < Math.floor(Math.random() * 3) + 2; j++) {
         const noteRef = doc(collection(db, notesPath))
         batch.set(noteRef, {
           body: faker.hacker.phrase(),
-          authorId: ownerId, // Keeping same author for simplicity as per requirements
+          authorId: ownerId,
           createdAt: serverTimestamp(),
         })
       }
     }
   }
-
   await batch.commit()
 }
 
@@ -126,8 +196,6 @@ export function productIdeaNoteDoc(ideaId: string, noteId: string) {
   return doc(db, "productIdeas", ideaId, "notes", noteId)
 }
 
-
-// Create a new product idea
 export async function createProductIdea(input: {
   title: string
   summary: string
@@ -138,7 +206,7 @@ export async function createProductIdea(input: {
   assigneeId?: string
   targetDate?: Timestamp
 }) {
-  const docRef = await addDoc(productIdeasCol(), {
+  const docRef = await addDoc(ideasCol, {
     title: input.title,
     summary: input.summary,
     status: input.status ?? "draft",
@@ -147,20 +215,14 @@ export async function createProductIdea(input: {
     ownerId: input.ownerId,
     assigneeId: input.assigneeId ?? null,
     targetDate: input.targetDate ?? null,
+    archivedAt: null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   })
   return docRef.id
 }
 
-// Create a new note for an idea
-export async function createProductIdeaNote(
-  ideaId: string,
-  input: {
-    body: string
-    authorId: string
-  }
-) {
+export async function createProductIdeaNote(ideaId: string, input: { body: string, authorId: string }) {
   const docRef = await addDoc(productIdeaNotesCol(ideaId), {
     body: input.body,
     authorId: input.authorId,
@@ -169,212 +231,105 @@ export async function createProductIdeaNote(
   return docRef.id
 }
 
-
-
-
-// Get a single product idea by ID
 export async function getProductIdea(ideaId: string): Promise<ProductIdea | null> {
-  const docSnap = await getDoc(productIdeaDoc(ideaId))
-  
-  if (!docSnap.exists()) {
-    return null
-  }
-  
-  return {
-    id: docSnap.id,
-    ...docSnap.data(),
-  } as ProductIdea
+  return getIdeaById(ideaId)
 }
 
-// Get all product ideas
 export async function getAllProductIdeas(): Promise<ProductIdea[]> {
-  const q = query(productIdeasCol(), orderBy("createdAt", "desc"))
+  const q = query(ideasCol, orderBy("createdAt", "desc"))
   const snapshot = await getDocs(q)
-  
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as ProductIdea[]
+  return snapshot.docs.map((doc) => normalizeIdea(doc.id, doc.data()))
 }
 
-// Get product ideas filtered by status
 export async function getProductIdeasByStatus(status: ProductIdeaStatus): Promise<ProductIdea[]> {
-  const q = query(
-    productIdeasCol(), 
-    where("status", "==", status),
-    orderBy("createdAt", "desc")
-  )
+  const q = query(ideasCol, where("status", "==", status), orderBy("createdAt", "desc"))
   const snapshot = await getDocs(q)
-  
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as ProductIdea[]
+  return snapshot.docs.map((doc) => normalizeIdea(doc.id, doc.data()))
 }
 
-// Get ideas filtered by owner
-export async function getProductIdeasByOwner(
-  ownerId: string
-): Promise<ProductIdea[]> {
-  const q = query(
-    productIdeasCol(),
-    where("ownerId", "==", ownerId),
-    orderBy("createdAt", "desc")
-  )
-  
+export async function getProductIdeasByOwner(ownerId: string): Promise<ProductIdea[]> {
+  const q = query(ideasCol, where("ownerId", "==", ownerId), orderBy("createdAt", "desc"))
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as ProductIdea[]
+  return snapshot.docs.map((doc) => normalizeIdea(doc.id, doc.data()))
 }
 
-// Get ideas filtered by tag
-export async function getProductIdeasByTag(
-  tag: string
-): Promise<ProductIdea[]> {
-  const q = query(
-    productIdeasCol(),
-    where("tags", "array-contains", tag),
-    orderBy("createdAt", "desc")
-  )
-  
+export async function getProductIdeasByTag(tag: string): Promise<ProductIdea[]> {
+  const q = query(ideasCol, where("tags", "array-contains", tag), orderBy("createdAt", "desc"))
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as ProductIdea[]
+  return snapshot.docs.map((doc) => normalizeIdea(doc.id, doc.data()))
 }
 
 export interface ProductIdeaFilters {
   status?: ProductIdeaStatus
   ownerId?: string
   tag?: string
+  archived?: boolean
 }
 
-export async function getFilteredProductIdeas(
-  filters: ProductIdeaFilters = {}
-): Promise<ProductIdea[]> {
-  let q = query(productIdeasCol(), orderBy("createdAt", "desc"))
-  
-  if (filters.status) {
-    q = query(q, where("status", "==", filters.status))
-  }
-  
-  if (filters.ownerId) {
-    q = query(q, where("ownerId", "==", filters.ownerId))
-  }
-  
-  if (filters.tag) {
-    q = query(q, where("tags", "array-contains", filters.tag))
-  }
-  
+export async function getFilteredProductIdeas(filters: ProductIdeaFilters = {}): Promise<ProductIdea[]> {
+  let q = query(ideasCol, orderBy("createdAt", "desc"))
+  if (filters.status) q = query(q, where("status", "==", filters.status))
+  if (filters.ownerId) q = query(q, where("ownerId", "==", filters.ownerId))
+  if (filters.tag) q = query(q, where("tags", "array-contains", filters.tag))
   const snapshot = await getDocs(q)
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as ProductIdea[]
+  return snapshot.docs.map((doc) => normalizeIdea(doc.id, doc.data()))
 }
 
-// Get product ideas with pagination and filtering
 export async function getProductIdeasPaginated(
   pageSize: number = 5,
   lastDoc?: ProductIdeaCursor,
   filters: ProductIdeaFilters = {}
-): Promise<{
-  ideas: ProductIdea[],
-  lastDoc: ProductIdeaCursor | null,
-  hasMore: boolean
-}> {
-  // Start with a base query
-  let q = query(productIdeasCol(), orderBy("createdAt", "desc"))
-  
-  // Apply filters
-  if (filters.status) {
-    q = query(q, where("status", "==", filters.status))
-  }
-  
-  if (filters.ownerId) {
-    q = query(q, where("ownerId", "==", filters.ownerId))
-  }
-  
-  if (filters.tag) {
-    q = query(q, where("tags", "array-contains", filters.tag))
+): Promise<{ ideas: ProductIdea[], lastDoc: ProductIdeaCursor | null, hasMore: boolean }> {
+  let q = query(ideasCol)
+
+  if (filters.archived === true) {
+    q = query(q, where("archivedAt", "!=", null), orderBy("archivedAt", "desc"), orderBy("createdAt", "desc"))
+  } else {
+    q = query(q, where("archivedAt", "==", null), orderBy("createdAt", "desc"))
   }
 
-  // Apply pagination start point
-  if (lastDoc) {
-    q = query(q, startAfter(lastDoc))
-  }
-
-  // Apply limit (fetch one extra to check for hasMore)
+  if (filters.status) q = query(q, where("status", "==", filters.status))
+  if (filters.ownerId) q = query(q, where("ownerId", "==", filters.ownerId))
+  if (filters.tag) q = query(q, where("tags", "array-contains", filters.tag))
+  if (lastDoc) q = query(q, startAfter(lastDoc))
   q = query(q, limit(pageSize + 1))
-  
   const snapshot = await getDocs(q)
-  
-  const ideas = snapshot.docs.slice(0, pageSize).map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as ProductIdea[]
-
+  const ideas = snapshot.docs.slice(0, pageSize).map((doc) => normalizeIdea(doc.id, doc.data()))
   const hasMore = snapshot.docs.length > pageSize
   const lastVisible = snapshot.docs.length > 0 ? snapshot.docs[ideas.length - 1] : null
-
-  return {
-    ideas,
-    lastDoc: lastVisible,
-    hasMore,
-  }
+  return { ideas, lastDoc: lastVisible, hasMore }
 }
 
-// Get notes for a specific idea
 export async function getProductIdeaNotes(ideaId: string): Promise<ProductIdeaNote[]> {
   const q = query(productIdeaNotesCol(ideaId), orderBy("createdAt", "desc"))
   const snapshot = await getDocs(q)
-  
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as ProductIdeaNote[]
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as ProductIdeaNote[]
 }
 
-
-// Update a product idea
-export async function updateProductIdea(
-  ideaId: string,
-  updates: Partial<Pick<ProductIdea, "title" | "summary" | "status" | "priority" | "tags" | "assigneeId" | "targetDate">>
-) {
-  await updateDoc(productIdeaDoc(ideaId), {
-    ...updates,
-    updatedAt: serverTimestamp(),
-  })
+export async function updateProductIdea(ideaId: string, updates: Partial<ProductIdea>) {
+  await updateDoc(productIdeaDoc(ideaId), { ...updates, updatedAt: serverTimestamp() })
 }
 
-// Delete a product idea
 export async function deleteProductIdea(ideaId: string) {
   await deleteDoc(productIdeaDoc(ideaId))
 }
 
-// Delete a note
+export async function updateProductIdeaNote(ideaId: string, noteId: string, body: string) {
+  await updateDoc(productIdeaNoteDoc(ideaId, noteId), {
+    body,
+  })
+}
+
 export async function deleteProductIdeaNote(ideaId: string, noteId: string) {
   await deleteDoc(productIdeaNoteDoc(ideaId, noteId))
 }
 
-// Clear all product ideas and their subcollections
 export async function clearProductIdeas() {
-  const snapshot = await getDocs(productIdeasCol())
-  
+  const snapshot = await getDocs(ideasCol)
   const deletePromises = snapshot.docs.map(async (ideaDoc) => {
-    // 1. Delete all notes in the subcollection
     const notesSnapshot = await getDocs(productIdeaNotesCol(ideaDoc.id))
-    const noteDeletePromises = notesSnapshot.docs.map((noteDoc) => 
-      deleteDoc(noteDoc.ref)
-    )
-    await Promise.all(noteDeletePromises)
-    
-    // 2. Delete the parent idea document
+    for (const noteDoc of notesSnapshot.docs) await deleteDoc(noteDoc.ref)
     return deleteDoc(ideaDoc.ref)
   })
-  
   await Promise.all(deletePromises)
 }

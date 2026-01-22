@@ -14,6 +14,8 @@ import { DataPage } from "@/pages/playground/DataPage"
 import { NotFoundPage } from "@/pages/NotFoundPage"
 import { QualityPage } from "@/pages/QualityPage"
 import IdeasPage from "./pages/IdeasPage"
+import CreateIdeaPage from "./pages/CreateIdeaPage"
+import IdeaDetailPage from "./pages/IdeaDetailPage"
 
 function App() {
   return (
@@ -24,6 +26,9 @@ function App() {
         
         {/* "ideas" list route */}
         <Route path="ideas" element={<IdeasPage />} />
+        <Route path="ideas/archived" element={<IdeasPage />} />
+        <Route path="ideas/new" element={<CreateIdeaPage />} />
+        <Route path="ideas/:ideaId" element={<IdeaDetailPage />} />
         
         {/* "create-tool" new form route */}
         <Route path="create-tool" element={<CreateToolPage />} />

@@ -16,6 +16,7 @@ export interface ProductIdea {
   targetDate?: Timestamp
   createdAt: Timestamp
   updatedAt: Timestamp
+  archivedAt?: Timestamp | null
 }
 
 export interface ProductIdeaNote {
