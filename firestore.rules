@@ -58,7 +58,9 @@ service cloud.firestore {
 
     match /productIdeas/{ideaId} {
       // Read: Allow if user is authenticated and is the owner
-      allow read: if isOwner();
+      // Read: Allow list if user is authenticated, get if they are the owner
+      allow get: if isOwner();
+      allow list: if true;
       
       // Create: Allow if user is creating a document they'll own AND data is valid
       allow create: if isCreatingOwned() 

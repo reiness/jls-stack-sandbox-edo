@@ -6,17 +6,19 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Trash2, Edit2, Check, X as CloseIcon } from "lucide-react"
 import { BadgePill } from "@/components/common/BadgePill"
 import { InlineAlert } from "@/components/common/InlineAlert"
-import { getIdeaById, updateIdea, archiveIdea, getProductIdeaNotes, createProductIdeaNote, deleteProductIdeaNote, updateProductIdeaNote } from "@/lib/firestore/productIdeas"
+import { subscribeToIdeaById, updateIdea, archiveIdea } from "@/lib/firestore/productIdeas"
+import { subscribeToIdeaNotes, addIdeaNote, type IdeaNote } from "@/lib/firestore/ideaNotes"
 import { useUser } from "@/lib/context/UserContext"
-import type { ProductIdea, ProductIdeaStatus, ProductIdeaNote } from "@/types/productIdeas"
+import { useRealTime } from "@/lib/context/RealTimeContext"
+import type { ProductIdea, ProductIdeaStatus } from "@/types/productIdeas"
 
 export default function IdeaDetailPage() {
   const { ideaId } = useParams()
   const navigate = useNavigate()
   const { userId } = useUser()
+  const { setStatus } = useRealTime()
   
   const [idea, setIdea] = useState<ProductIdea | null>(null)
   const [loading, setLoading] = useState(true)
@@ -31,49 +33,73 @@ export default function IdeaDetailPage() {
   const [saving, setSaving] = useState(false)
 
   // Notes state
-  const [notes, setNotes] = useState<ProductIdeaNote[]>([])
+  const [notes, setNotes] = useState<IdeaNote[]>([])
   const [newNote, setNewNote] = useState("")
   const [submittingNote, setSubmittingNote] = useState(false)
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
-  const [editNoteBody, setEditNoteBody] = useState("")
+  const [notesLoading, setNotesLoading] = useState(true)
+  const [notesError, setNotesError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (ideaId) {
-      fetchIdea(ideaId)
-      fetchNotes(ideaId)
+    if (!ideaId) return
+
+    console.log(`🔌 Detail: Subscribing to idea ${ideaId}`)
+    setLoading(true)
+    setError(null)
+
+    const unsubscribe = subscribeToIdeaById(
+      ideaId,
+      (nextIdea) => {
+        setStatus("active")
+        setIdea(nextIdea)
+        if (nextIdea) {
+          // Sync edit state
+          setEditTitle(nextIdea.title)
+          setEditSummary(nextIdea.summary)
+          setEditStatus(nextIdea.status)
+          setEditTags(nextIdea.tags.join(", "))
+        }
+        setLoading(false)
+      },
+      (err) => {
+        setStatus("error")
+        setError("Failed to load idea in real time.")
+        setLoading(false)
+        console.error(err)
+      }
+    )
+
+    return () => {
+      console.log(`🔌 Detail: Unsubscribing from idea ${ideaId}`)
+      setStatus("off")
+      unsubscribe()
+    }
+  }, [ideaId, setStatus])
+
+  useEffect(() => {
+    if (!ideaId) return
+
+    console.log(`📝 Detail: Subscribing to notes for ${ideaId}`)
+    setNotesLoading(true)
+    setNotesError(null)
+    
+    const unsubscribeNotes = subscribeToIdeaNotes(
+      ideaId,
+      (updatedNotes) => {
+        setNotes(updatedNotes)
+        setNotesLoading(false)
+      },
+      (err) => {
+        console.error("Error subscribing to notes:", err)
+        setNotesError("Failed to load notes.")
+        setNotesLoading(false)
+      }
+    )
+
+    return () => {
+      console.log(`📝 Detail: Unsubscribing from notes for ${ideaId}`)
+      unsubscribeNotes()
     }
   }, [ideaId])
-
-  const fetchNotes = async (id: string) => {
-    try {
-      const fetchedNotes = await getProductIdeaNotes(id)
-      setNotes(fetchedNotes)
-    } catch (err) {
-      console.error("Error fetching notes:", err)
-    }
-  }
-
-  const fetchIdea = async (id: string) => {
-    setLoading(true)
-    try {
-      const data = await getIdeaById(id)
-      if (data) {
-        setIdea(data)
-        // Sync edit state
-        setEditTitle(data.title)
-        setEditSummary(data.summary)
-        setEditStatus(data.status)
-        setEditTags(data.tags.join(", "))
-      } else {
-        setError("Idea not found.")
-      }
-    } catch (err) {
-      console.error(err)
-      setError("Failed to load idea details.")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleSave = async () => {
     if (!idea || !ideaId) return
@@ -94,8 +120,6 @@ export default function IdeaDetailPage() {
         tags: tagArray,
       })
       
-      // Refresh local data
-      await fetchIdea(ideaId)
       setIsEditing(false)
       alert("Idea updated successfully!")
     } catch (err) {
@@ -107,47 +131,23 @@ export default function IdeaDetailPage() {
   }
 
   const handleAddNote = async () => {
-    if (!ideaId || !newNote.trim() || !userId) return
+    if (!ideaId || !newNote.trim()) return
+
+    // Fallback if not logged in (though typically we require auth)
+    const authorId = userId || "anonymous"
 
     setSubmittingNote(true)
     try {
-      await createProductIdeaNote(ideaId, {
+      await addIdeaNote(ideaId, {
         body: newNote,
-        authorId: userId
+        authorId: authorId
       })
       setNewNote("")
-      await fetchNotes(ideaId)
     } catch (err) {
       console.error("Error creating note:", err)
       alert("Failed to add note.")
     } finally {
       setSubmittingNote(false)
-    }
-  }
-
-  const handleUpdateNote = async (noteId: string) => {
-    if (!ideaId || !editNoteBody.trim()) return
-
-    try {
-      await updateProductIdeaNote(ideaId, noteId, editNoteBody.trim())
-      setEditingNoteId(null)
-      await fetchNotes(ideaId)
-    } catch (err) {
-      console.error("Error updating note:", err)
-      alert("Failed to update note.")
-    }
-  }
-
-  const handleDeleteNote = async (noteId: string) => {
-    if (!ideaId || !userId) return
-    if (!window.confirm("Are you sure you want to delete this note?")) return
-
-    try {
-      await deleteProductIdeaNote(ideaId, noteId)
-      await fetchNotes(ideaId)
-    } catch (err) {
-      console.error("Error deleting note:", err)
-      alert("Failed to delete note.")
     }
   }
 
@@ -310,7 +310,34 @@ export default function IdeaDetailPage() {
               <div className="bg-card border-2 border-border shadow-hard rounded-3xl p-8 space-y-6">
                 <h3 className="text-xl font-black uppercase tracking-tight border-b-2 border-border pb-2">Notes & Feedback</h3>
                 
-                <div className="space-y-4">
+                {/* Notes List */}
+                <div className="space-y-4 pt-4">
+                  {notesLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : notesError ? (
+                     <InlineAlert tone="danger" title="Error" message={notesError} />
+                  ) : notes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic text-center py-4">No notes yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {notes.map(note => (
+                        <div key={note.id} className="bg-muted/30 p-4 rounded-xl border-2 border-border/50 text-sm group relative">
+                          <p className="font-medium leading-relaxed">{note.body}</p>
+                          <div className="flex items-center justify-between mt-3">
+                            <p className="text-[10px] font-black uppercase text-muted-foreground">
+                              {note.createdAt?.toDate ? new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(note.createdAt.toDate()) : "Just now"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Add Note Form */}
+                <div className="space-y-4 pt-4 border-t-2 border-border">
                   <Textarea
                     placeholder="Add a new note..."
                     value={newNote}
@@ -329,75 +356,6 @@ export default function IdeaDetailPage() {
                       {submittingNote ? "Adding..." : "Add Note"}
                     </Button>
                   </div>
-                </div>
-
-                <div className="space-y-4 pt-4">
-                  {notes.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic text-center py-4">No notes yet.</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {notes.map(note => (
-                        <div key={note.id} className="bg-muted/30 p-4 rounded-xl border-2 border-border/50 text-sm group relative">
-                          {editingNoteId === note.id ? (
-                            <div className="space-y-3">
-                              <Textarea
-                                value={editNoteBody}
-                                onChange={e => setEditNoteBody(e.target.value)}
-                                className="min-h-[80px] border-2 border-border shadow-hard-sm focus-visible:ring-primary"
-                              />
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => setEditingNoteId(null)}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <CloseIcon size={16} />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleUpdateNote(note.id)}
-                                  className="h-8 w-8 p-0"
-                                >
-                                  <Check size={16} />
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <p className="pr-16 font-medium leading-relaxed">{note.body}</p>
-                              <div className="flex items-center justify-between mt-3">
-                                <p className="text-[10px] font-black uppercase text-muted-foreground">
-                                  {note.createdAt?.toDate().toLocaleDateString() || "Just now"}
-                                </p>
-                                {note.authorId === userId && (
-                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                      onClick={() => {
-                                        setEditingNoteId(note.id)
-                                        setEditNoteBody(note.body)
-                                      }}
-                                      className="text-muted-foreground hover:text-primary transition-colors p-1"
-                                      title="Edit note"
-                                    >
-                                      <Edit2 size={16} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteNote(note.id)}
-                                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
-                                      title="Delete note"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

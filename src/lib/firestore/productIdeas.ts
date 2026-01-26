@@ -16,6 +16,8 @@ import {
   writeBatch,
   Timestamp,
   DocumentSnapshot,
+  onSnapshot,
+  type Unsubscribe,
 } from "firebase/firestore"
 import { faker } from "@faker-js/faker"
 import type { ProductIdea, ProductIdeaNote, ProductIdeaStatus, ProductIdeaPriority } from "@/types/productIdeas"
@@ -50,7 +52,7 @@ function normalizeIdea(id: string, data: Record<string, unknown>): ProductIdea {
 
 export async function listActiveIdeas(ownerId?: string): Promise<ProductIdea[]> {
   // Active = not archived
-  let q = query(ideasCol, where("archivedAt", "==", null), orderBy("updatedAt", "desc"))
+  let q = query(ideasCol, where("archivedAt", "==", null), orderBy("createdAt", "desc"))
   
   if (ownerId) {
     q = query(q, where("ownerId", "==", ownerId))
@@ -110,6 +112,52 @@ export async function restoreIdea(id: string) {
     archivedAt: null,
     updatedAt: serverTimestamp(),
   })
+}
+
+export function subscribeToActiveIdeas(
+  onNext: (ideas: ProductIdea[]) => void,
+  onError?: (err: unknown) => void
+): Unsubscribe {
+  // Active ideas: archivedAt == null, newest created first (to match existing indices)
+  const q = query(
+    ideasCol,
+    where("archivedAt", "==", null),
+    orderBy("createdAt", "desc")
+  )
+
+  return onSnapshot(
+    q,
+    (snap) => {
+      const ideas = snap.docs.map((d) => normalizeIdea(d.id, d.data()))
+      onNext(ideas)
+    },
+    (err) => onError?.(err)
+  )
+}
+
+export function subscribeToIdeaById(
+  id: string,
+  onNext: (idea: ProductIdea | null) => void,
+  onError?: (err: unknown) => void
+): Unsubscribe {
+  const ref = doc(db, "productIdeas", id)
+
+  return onSnapshot(
+    ref,
+    (snap) => {
+      if (!snap.exists()) {
+        onNext(null)
+        return
+      }
+      onNext(normalizeIdea(snap.id, snap.data()))
+    },
+    (err) => onError?.(err)
+  )
+}
+
+export async function touchIdea(id: string) {
+  const ref = doc(db, "productIdeas", id)
+  return updateDoc(ref, { updatedAt: serverTimestamp() })
 }
 
 // --- EXISTING FEATURES (Preserved) ---

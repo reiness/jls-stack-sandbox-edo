@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useUser } from "@/lib/context/UserContext"
+import { useRealTime } from "@/lib/context/RealTimeContext"
 import { SkipToMain } from "../common/SkipToMain"
 import { PageTransition } from "./PageTransition"
 
@@ -49,6 +50,7 @@ const navGroups = [
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { setUserId, user } = useUser()
+  const { status } = useRealTime()
 
   const getUserKey = () => {
     if (user?.email === "user123@example.com") return "user-123"
@@ -62,14 +64,14 @@ export function AppLayout() {
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground font-['Fredoka']">
       <SkipToMain />
       {/* Topbar - Fixed height, no scroll */}
-      <header className="z-30 flex h-16 shrink-0 items-center justify-between border-b-2 border-border bg-card/80 backdrop-blur px-4 lg:px-6">
+      <header className="z-30 flex min-h-16 h-auto shrink-0 items-center justify-between border-b-2 border-border bg-card/80 backdrop-blur px-4 py-2 lg:px-6">
         <div className="flex items-center gap-3">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-border bg-primary text-lg font-black text-primary-foreground shadow-hard-sm">
             J
           </span>
-          <div className="flex flex-col leading-none">
-            <span className="text-lg font-bold tracking-tight">JLS Stack Sandbox</span>
-            <span className="text-xs font-bold text-muted-foreground">
+          <div className="flex flex-col leading-none justify-center">
+            <span className="text-sm sm:text-lg font-bold tracking-tight">JLS Stack Sandbox</span>
+            <span className="text-[10px] sm:text-xs font-bold text-muted-foreground">
               Week 2 – UI/UX & Layout
             </span>
           </div>
@@ -78,7 +80,7 @@ export function AppLayout() {
         {/* Center/Right: Desktop nav shortcuts + user placeholder */}
         <div className="hidden items-center gap-4 md:flex">
           {/* Enhancement 1: Fake Search Input */}
-          <div className="relative">
+          <div className="relative hidden lg:block">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
@@ -91,6 +93,19 @@ export function AppLayout() {
           {/* Enhancement 2: Styled Environment Indicator */}
           <div className="inline-flex h-8 items-center rounded-full border-2 border-border bg-secondary px-3 text-xs font-bold text-secondary-foreground shadow-hard-sm">
             Environment: Dev
+          </div>
+
+          {/* Live Updating Indicator */}
+          <div
+            className={`inline-flex h-8 items-center rounded-full border-2 px-3 text-xs font-bold shadow-hard-sm transition-colors ${
+              status === "active"
+                ? "border-emerald-600 bg-emerald-100 text-emerald-800"
+                : status === "error"
+                ? "border-destructive bg-destructive text-destructive-foreground"
+                : "border-border bg-muted text-muted-foreground"
+            }`}
+          >
+            Live: {status === "active" ? "On" : status === "error" ? "Error" : "Off"}
           </div>
 
           <Button

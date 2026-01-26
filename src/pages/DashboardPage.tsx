@@ -8,30 +8,37 @@ import { SectionCard } from "../components/common/SectionCard"
 import { EmptyState } from "../components/common/EmptyState"
 import { Button } from "../components/ui/button"
 import { BadgePill } from "../components/common/BadgePill"
-import { listActiveIdeas } from "@/lib/firestore/productIdeas"
-import type { ProductIdea } from "@/types/productIdeas"
-import { useUser } from "@/lib/context/UserContext"
+import { subscribeToActiveIdeas, type ProductIdea } from "@/lib/firestore/productIdeas"
+import { useRealTime } from "@/lib/context/RealTimeContext"
 
 export function DashboardPage() {
-  const { userId } = useUser()
   const [ideas, setIdeas] = useState<ProductIdea[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { setStatus } = useRealTime()
 
   useEffect(() => {
-    if (!userId) return
-    
-    console.log("DashboardPage: Fetching active ideas for user:", userId)
-    listActiveIdeas(userId).then((data) => {
-      console.log("DashboardPage: Successfully fetched ideas:", data.length)
-      setIdeas(data.slice(0, 5)) // Show only top 5
-      setLoading(false)
-    }).catch(err => {
-      console.error("DashboardPage: Error fetching ideas:", err)
-      setError(`Failed to load ideas: ${err.message}`)
-      setLoading(false)
-    })
-  }, [userId])
+    console.log("🔌 Dashboard: Subscribing to ideas")
+    const unsubscribe = subscribeToActiveIdeas(
+      (nextIdeas) => {
+        setStatus("active")
+        setIdeas(nextIdeas.slice(0, 5))
+        setLoading(false)
+      },
+      (err) => {
+        setStatus("error")
+        setError("Failed to load ideas in real time.")
+        setLoading(false)
+        console.error(err)
+      }
+    )
+
+    return () => {
+      console.log("🔌 Dashboard: Unsubscribing from ideas")
+      setStatus("off")
+      unsubscribe()
+    }
+  }, [setStatus])
 
   return (
     <div className="space-y-8">
