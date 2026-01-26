@@ -7,6 +7,7 @@ export type ProductIdeaPriority = "low" | "medium" | "high"
 export interface ProductIdea {
   id: string
   title: string
+  titleLower?: string
   summary: string
   status: ProductIdeaStatus
   priority?: ProductIdeaPriority

@@ -13,11 +13,15 @@ import {
   where,
   limit,
   startAfter,
+  startAt,
+  endAt,
   writeBatch,
   Timestamp,
   DocumentSnapshot,
   onSnapshot,
   type Unsubscribe,
+  type DocumentData,
+  type QueryDocumentSnapshot,
 } from "firebase/firestore"
 import { faker } from "@faker-js/faker"
 import type { ProductIdea, ProductIdeaNote, ProductIdeaStatus, ProductIdeaPriority } from "@/types/productIdeas"
@@ -29,11 +33,27 @@ export type { ProductIdea, ProductIdeaStatus }
 // --- COLLECTION REFERENCE ---
 const ideasCol = collection(db, "productIdeas")
 
+function normalizeTitleLower(title: string) {
+  return title.trim().toLowerCase()
+}
+
+function normalizeTags(tags: string[]) {
+  const cleaned = tags
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean)
+
+  // de-dupe while preserving order
+  return Array.from(new Set(cleaned))
+}
+
 // --- HELPER (From New Update) ---
 function normalizeIdea(id: string, data: Record<string, unknown>): ProductIdea {
+  const title = (data.title as string) ?? ""
+
   return {
     id,
-    title: (data.title as string) ?? "",
+    title,
+    titleLower: (data.titleLower as string) ?? normalizeTitleLower(title),
     summary: (data.summary as string) ?? "",
     status: (data.status as ProductIdeaStatus) ?? "draft",
     tags: Array.isArray(data.tags) ? (data.tags as string[]) : [],
@@ -77,9 +97,13 @@ export async function createIdea(input: {
   tags: string[]
   ownerId: string
 }) {
-  // addDoc is the standard way to create a doc with an auto-id
+  const titleLower = normalizeTitleLower(input.title)
+  const tags = normalizeTags(input.tags)
+
   return addDoc(ideasCol, {
     ...input,
+    titleLower,
+    tags,
     archivedAt: null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -91,11 +115,21 @@ export async function updateIdea(
   patch: Partial<Pick<ProductIdea, "title" | "summary" | "status" | "tags">>
 ) {
   const ref = doc(db, "productIdeas", id)
-  // updateDoc updates selected fields
-  return updateDoc(ref, {
+
+  const next: any = {
     ...patch,
     updatedAt: serverTimestamp(),
-  })
+  }
+
+  if (typeof patch.title === "string") {
+    next.titleLower = normalizeTitleLower(patch.title)
+  }
+
+  if (Array.isArray(patch.tags)) {
+    next.tags = normalizeTags(patch.tags)
+  }
+
+  return updateDoc(ref, next)
 }
 
 export async function archiveIdea(id: string) {
@@ -169,11 +203,16 @@ export function productIdeasCol() {
 }
 
 export async function createHelloIdea(ownerId: string) {
+  const title = "Hello Firestore"
+  const titleLower = normalizeTitleLower(title)
+  const tags = normalizeTags(["week-3", "intro"])
+
   return addDoc(ideasCol, {
-    title: "Hello Firestore",
+    title,
+    titleLower,
     summary: "This is a proof document created in Lesson 3.1.",
     status: "draft",
-    tags: ["week-3", "intro"],
+    tags,
     ownerId,
     archivedAt: null,
     createdAt: serverTimestamp(),
@@ -203,12 +242,16 @@ export async function seedProductIdeas(ownerId: string = "user-123") {
 
   for (let i = 0; i < 7; i++) {
     const newDocRef = doc(ideasCol)
+    const title = faker.company.catchPhrase()
+    const tags = faker.helpers.arrayElements(possibleTags, Math.floor(Math.random() * 3) + 1)
+
     const idea = {
-      title: faker.company.catchPhrase(),
+      title,
+      titleLower: normalizeTitleLower(title),
       summary: faker.commerce.productDescription(),
       status: faker.helpers.arrayElement(statuses),
       priority: faker.helpers.arrayElement(priorities),
-      tags: faker.helpers.arrayElements(possibleTags, Math.floor(Math.random() * 3) + 1),
+      tags: normalizeTags(tags),
       ownerId,
       assigneeId: getRandomDevId(),
       targetDate: getRandomTargetDate(),
@@ -346,6 +389,77 @@ export async function getProductIdeasPaginated(
   const hasMore = snapshot.docs.length > pageSize
   const lastVisible = snapshot.docs.length > 0 ? snapshot.docs[ideas.length - 1] : null
   return { ideas, lastDoc: lastVisible, hasMore }
+}
+
+export type IdeaListStatus = ProductIdeaStatus | "all"
+
+export type IdeaListFilters = {
+  status?: IdeaListStatus
+  tag?: string
+  q?: string
+  archived?: boolean
+}
+
+export type IdeasPageResult = {
+  items: ProductIdea[]
+  nextCursor: QueryDocumentSnapshot<DocumentData> | null
+}
+
+export async function fetchIdeasPage(options: {
+  filters: IdeaListFilters
+  pageSize: number
+  cursor: QueryDocumentSnapshot<DocumentData> | null
+}): Promise<IdeasPageResult> {
+  const { filters, pageSize, cursor } = options
+
+  const clauses: any[] = []
+
+  // Archived filter
+  if (filters.archived) {
+    clauses.push(where("archivedAt", "!=", null))
+  } else {
+    clauses.push(where("archivedAt", "==", null))
+  }
+
+  // Status filter
+  if (filters.status && filters.status !== "all") {
+    clauses.push(where("status", "==", filters.status))
+  }
+
+  // Tag filter (single tag)
+  if (filters.tag && filters.tag !== "all") {
+    clauses.push(where("tags", "array-contains", filters.tag.toLowerCase()))
+  }
+
+  const qRaw = (filters.q ?? "").trim().toLowerCase()
+  const hasSearch = qRaw.length > 0
+
+  // Ordering strategy:
+  // - If searching: order by titleLower so we can do prefix search with cursors
+  // - Otherwise: order by updatedAt desc (more "product-like")
+  let qBuilt = hasSearch
+    ? query(ideasCol, ...clauses, orderBy("titleLower", "asc"))
+    : query(ideasCol, ...clauses, orderBy("updatedAt", "desc"))
+
+  // Prefix search (only if searching)
+  // Uses ordered cursors: startAt(q) ... endAt(q + "\uf8ff")
+  // This is a standard Firestore cursor technique. :contentReference[oaicite:13]{index=13}
+  if (hasSearch) {
+    qBuilt = query(qBuilt, startAt(qRaw), endAt(qRaw + "\uf8ff"))
+  }
+
+  // Pagination
+  qBuilt = cursor
+    ? query(qBuilt, startAfter(cursor), limit(pageSize))
+    : query(qBuilt, limit(pageSize))
+
+  const snap = await getDocs(qBuilt)
+  const items = snap.docs.map((d) => normalizeIdea(d.id, d.data()))
+
+  const nextCursor =
+    snap.docs.length === pageSize ? snap.docs[snap.docs.length - 1] : null
+
+  return { items, nextCursor }
 }
 
 export async function getProductIdeaNotes(ideaId: string): Promise<ProductIdeaNote[]> {
