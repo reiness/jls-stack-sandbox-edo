@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { NavLink, Outlet } from "react-router-dom"
+import { Toaster } from "@/components/ui/sonner"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -247,6 +248,7 @@ export function AppLayout() {
           </div>
         </main>
       </div>
+      <Toaster />
     </div>
   )
 }

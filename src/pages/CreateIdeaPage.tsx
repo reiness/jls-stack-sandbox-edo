@@ -11,6 +11,7 @@ import { InlineAlert } from "@/components/common/InlineAlert"
 import { createIdea, createProductIdeaNote } from "@/lib/firestore/productIdeas"
 import { useUser } from "@/lib/context/UserContext"
 import type { ProductIdeaStatus } from "@/types/productIdeas"
+import { toast } from "sonner"
 
 export default function CreateIdeaPage() {
   const navigate = useNavigate()
@@ -82,13 +83,14 @@ export default function CreateIdeaPage() {
         ))
       }
 
-      // Show success message (using alert for simplicity in this sandbox)
-      alert("Idea created successfully!")
+      // Show success message
+      toast.success("Idea created successfully!")
       
       // Navigate to the new idea detail page
       navigate(`/ideas/${docRef.id}`)
     } catch (err) {
       console.error(err)
+      toast.error("Failed to create idea.")
       setError("Failed to create idea. Please try again.")
     } finally {
       setLoading(false)

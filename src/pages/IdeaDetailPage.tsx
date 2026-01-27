@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { PageHeader } from "@/components/common/PageHeader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -13,6 +12,12 @@ import { subscribeToIdeaNotes, addIdeaNote, type IdeaNote } from "@/lib/firestor
 import { useUser } from "@/lib/context/UserContext"
 import { useRealTime } from "@/lib/context/RealTimeContext"
 import type { ProductIdea, ProductIdeaStatus } from "@/types/productIdeas"
+import { toast } from "sonner"
+import { EmptyState } from "@/components/states/EmptyState"
+import { MessageSquarePlus } from "lucide-react"
+import { IdeaDetailSkeleton } from "@/components/states/IdeaDetailSkeleton"
+import { ErrorState } from "@/components/states/ErrorState"
+import { sleep } from "@/lib/utils"
 
 export default function IdeaDetailPage() {
   const { ideaId } = useParams()
@@ -22,7 +27,9 @@ export default function IdeaDetailPage() {
   
   const [idea, setIdea] = useState<ProductIdea | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isDelaying, setIsDelaying] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retryKey, setRetryKey] = useState(0)
   
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(false)
@@ -38,6 +45,10 @@ export default function IdeaDetailPage() {
   const [submittingNote, setSubmittingNote] = useState(false)
   const [notesLoading, setNotesLoading] = useState(true)
   const [notesError, setNotesError] = useState<string | null>(null)
+
+  useEffect(() => {
+    sleep(1000).then(() => setIsDelaying(false))
+  }, [])
 
   useEffect(() => {
     if (!ideaId) return
@@ -73,7 +84,7 @@ export default function IdeaDetailPage() {
       setStatus("off")
       unsubscribe()
     }
-  }, [ideaId, setStatus])
+  }, [ideaId, setStatus, retryKey])
 
   useEffect(() => {
     if (!ideaId) return
@@ -121,9 +132,10 @@ export default function IdeaDetailPage() {
       })
       
       setIsEditing(false)
-      alert("Idea updated successfully!")
+      toast.success("Idea updated successfully!")
     } catch (err) {
       console.error(err)
+      toast.error("Failed to update idea.")
       setError("Failed to update idea.")
     } finally {
       setSaving(false)
@@ -143,9 +155,10 @@ export default function IdeaDetailPage() {
         authorId: authorId
       })
       setNewNote("")
+      toast.success("Note added!")
     } catch (err) {
       console.error("Error creating note:", err)
-      alert("Failed to add note.")
+      toast.error("Failed to add note.")
     } finally {
       setSubmittingNote(false)
     }
@@ -160,29 +173,35 @@ export default function IdeaDetailPage() {
 
     try {
       await archiveIdea(ideaId)
-      alert("Idea archived.")
+      toast.message("Idea archived")
       navigate("/") // Go back to dashboard/list
     } catch (err) {
       console.error(err)
-      alert("Failed to archive idea.")
+      toast.error("Failed to archive idea.")
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-24 text-muted-foreground gap-4">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="font-bold animate-pulse">Fetching Idea Details...</p>
-      </div>
-    )
+  if (loading || isDelaying) {
+    return <IdeaDetailSkeleton />
   }
 
   if (error || !idea) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="Idea Not Found" subtitle="The requested idea could not be loaded." />
-        <InlineAlert tone="danger" title="Error" message={error || "Idea not found."} />
-        <Button onClick={() => navigate("/")}>Back to Dashboard</Button>
+      <div className="max-w-2xl mx-auto space-y-8 pt-12">
+        <ErrorState
+            title={!idea && !error ? "Idea Not Found" : "Connection Error"}
+            message={error || "We couldn't find the idea you're looking for. It might have been deleted or archived."}
+            onRetry={() => {
+                setError(null)
+                setIsDelaying(true)
+                setRetryKey(k => k + 1)
+            }}
+        />
+        <div className="flex justify-center">
+            <Button variant="ghost" onClick={() => navigate("/ideas")} className="font-bold">
+                ← Back to All Ideas
+            </Button>
+        </div>
       </div>
     )
   }
@@ -319,7 +338,11 @@ export default function IdeaDetailPage() {
                   ) : notesError ? (
                      <InlineAlert tone="danger" title="Error" message={notesError} />
                   ) : notes.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic text-center py-4">No notes yet.</p>
+                    <EmptyState
+                      icon={<MessageSquarePlus className="h-8 w-8" />}
+                      title="No notes yet"
+                      description="Share your thoughts, feedback, or technical notes about this idea to keep the momentum going."
+                    />
                   ) : (
                     <div className="space-y-3">
                       {notes.map(note => (
