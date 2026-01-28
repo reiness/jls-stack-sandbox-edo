@@ -70,19 +70,6 @@ function normalizeIdea(id: string, data: Record<string, unknown>): ProductIdea {
 
 // --- NEW CRUD API (Newest Update) ---
 
-export async function listActiveIdeas(ownerId?: string): Promise<ProductIdea[]> {
-  // Active = not archived
-  let q = query(ideasCol, where("archivedAt", "==", null), orderBy("createdAt", "desc"))
-  
-  if (ownerId) {
-    q = query(q, where("ownerId", "==", ownerId))
-  }
-
-  console.log("listActiveIdeas: Executing query...", { ownerId })
-  const snap = await getDocs(q)
-  return snap.docs.map(d => normalizeIdea(d.id, d.data()))
-}
-
 export async function getIdeaById(id: string): Promise<ProductIdea | null> {
   const ref = doc(db, "productIdeas", id)
   const snap = await getDoc(ref)
@@ -189,36 +176,9 @@ export function subscribeToIdeaById(
   )
 }
 
-export async function touchIdea(id: string) {
-  const ref = doc(db, "productIdeas", id)
-  return updateDoc(ref, { updatedAt: serverTimestamp() })
-}
-
 // --- EXISTING FEATURES (Preserved) ---
 
 export type ProductIdeaCursor = DocumentSnapshot
-
-export function productIdeasCol() {
-  return ideasCol
-}
-
-export async function createHelloIdea(ownerId: string) {
-  const title = "Hello Firestore"
-  const titleLower = normalizeTitleLower(title)
-  const tags = normalizeTags(["week-3", "intro"])
-
-  return addDoc(ideasCol, {
-    title,
-    titleLower,
-    summary: "This is a proof document created in Lesson 3.1.",
-    status: "draft",
-    tags,
-    ownerId,
-    archivedAt: null,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  })
-}
 
 export async function seedProductIdeas(ownerId: string = "user-123") {
   const batch = writeBatch(db)
@@ -320,16 +280,6 @@ export async function createProductIdeaNote(ideaId: string, input: { body: strin
     createdAt: serverTimestamp(),
   })
   return docRef.id
-}
-
-export async function getProductIdea(ideaId: string): Promise<ProductIdea | null> {
-  return getIdeaById(ideaId)
-}
-
-export async function getAllProductIdeas(): Promise<ProductIdea[]> {
-  const q = query(ideasCol, orderBy("createdAt", "desc"))
-  const snapshot = await getDocs(q)
-  return snapshot.docs.map((doc) => normalizeIdea(doc.id, doc.data()))
 }
 
 export async function getProductIdeasByStatus(status: ProductIdeaStatus): Promise<ProductIdea[]> {
@@ -470,10 +420,6 @@ export async function getProductIdeaNotes(ideaId: string): Promise<ProductIdeaNo
 
 export async function updateProductIdea(ideaId: string, updates: Partial<ProductIdea>) {
   await updateDoc(productIdeaDoc(ideaId), { ...updates, updatedAt: serverTimestamp() })
-}
-
-export async function deleteProductIdea(ideaId: string) {
-  await deleteDoc(productIdeaDoc(ideaId))
 }
 
 export async function updateProductIdeaNote(ideaId: string, noteId: string, body: string) {

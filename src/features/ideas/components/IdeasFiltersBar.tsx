@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import type { IdeaListFilters, IdeaListStatus } from "@/lib/firestore/productIdeas"
+import { STATUS_OPTIONS } from "@/types/productIdeas"
 
 interface IdeasFiltersBarProps {
   filters: Required<IdeaListFilters>
@@ -87,10 +88,11 @@ export function IdeasFiltersBar({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="paused">Paused</SelectItem>
-                <SelectItem value="shipped">Shipped</SelectItem>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

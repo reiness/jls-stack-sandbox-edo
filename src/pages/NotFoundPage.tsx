@@ -1,4 +1,4 @@
-import { EmptyState } from "@/components/common/EmptyState"
+import { EmptyState } from "@/components/states/EmptyState"
 import { SectionCard } from "@/components/common/SectionCard"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"

@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { InlineAlert } from "@/components/common/InlineAlert"
 import { createIdea, createProductIdeaNote } from "@/lib/firestore/productIdeas"
 import { useUser } from "@/lib/context/UserContext"
-import type { ProductIdeaStatus } from "@/types/productIdeas"
+import { STATUS_OPTIONS, type ProductIdeaStatus } from "@/types/productIdeas"
 import { toast } from "sonner"
 
 export default function CreateIdeaPage() {
@@ -143,10 +143,11 @@ export default function CreateIdeaPage() {
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="paused">Paused</SelectItem>
-                <SelectItem value="shipped">Shipped</SelectItem>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

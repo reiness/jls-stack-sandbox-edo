@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
 import { updateProductIdea } from "@/lib/firestore/productIdeas"
-import type { ProductIdea, ProductIdeaPriority, ProductIdeaStatus } from "@/types/productIdeas"
+import { STATUS_OPTIONS, type ProductIdea, type ProductIdeaPriority, type ProductIdeaStatus } from "@/types/productIdeas"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
@@ -97,10 +97,11 @@ export function EditIdeaDialog({ idea, open, onOpenChange, onSuccess }: EditIdea
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="paused">Paused</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
+                  {STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

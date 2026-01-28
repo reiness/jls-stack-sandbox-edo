@@ -7,29 +7,24 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { BadgePill } from "@/components/common/BadgePill"
 import { InlineAlert } from "@/components/common/InlineAlert"
-import { subscribeToIdeaById, updateIdea, archiveIdea } from "@/lib/firestore/productIdeas"
-import { subscribeToIdeaNotes, addIdeaNote, type IdeaNote } from "@/lib/firestore/ideaNotes"
+import { updateIdea, archiveIdea } from "@/lib/firestore/productIdeas"
+import { addIdeaNote } from "@/lib/firestore/ideaNotes"
 import { useUser } from "@/lib/context/UserContext"
-import { useRealTime } from "@/lib/context/RealTimeContext"
-import type { ProductIdea, ProductIdeaStatus } from "@/types/productIdeas"
+import { STATUS_OPTIONS, type ProductIdeaStatus } from "@/types/productIdeas"
 import { toast } from "sonner"
 import { EmptyState } from "@/components/states/EmptyState"
 import { MessageSquarePlus } from "lucide-react"
 import { IdeaDetailSkeleton } from "@/components/states/IdeaDetailSkeleton"
 import { ErrorState } from "@/components/states/ErrorState"
-import { sleep } from "@/lib/utils"
+import { useIdea } from "@/features/ideas/hooks/useIdea"
+import { useIdeaNotes } from "@/features/ideas/hooks/useIdeaNotes"
 
 export default function IdeaDetailPage() {
   const { ideaId } = useParams()
   const navigate = useNavigate()
   const { userId } = useUser()
-  const { setStatus } = useRealTime()
   
-  const [idea, setIdea] = useState<ProductIdea | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isDelaying, setIsDelaying] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [retryKey, setRetryKey] = useState(0)
+  const { idea, loading: ideaLoading, error: ideaError } = useIdea(ideaId)
   
   // Edit Mode State
   const [isEditing, setIsEditing] = useState(false)
@@ -40,83 +35,24 @@ export default function IdeaDetailPage() {
   const [saving, setSaving] = useState(false)
 
   // Notes state
-  const [notes, setNotes] = useState<IdeaNote[]>([])
+  const { notes, loading: notesLoading, error: notesError } = useIdeaNotes(ideaId)
   const [newNote, setNewNote] = useState("")
   const [submittingNote, setSubmittingNote] = useState(false)
-  const [notesLoading, setNotesLoading] = useState(true)
-  const [notesError, setNotesError] = useState<string | null>(null)
 
   useEffect(() => {
-    sleep(1000).then(() => setIsDelaying(false))
-  }, [])
-
-  useEffect(() => {
-    if (!ideaId) return
-
-    console.log(`🔌 Detail: Subscribing to idea ${ideaId}`)
-    setLoading(true)
-    setError(null)
-
-    const unsubscribe = subscribeToIdeaById(
-      ideaId,
-      (nextIdea) => {
-        setStatus("active")
-        setIdea(nextIdea)
-        if (nextIdea) {
-          // Sync edit state
-          setEditTitle(nextIdea.title)
-          setEditSummary(nextIdea.summary)
-          setEditStatus(nextIdea.status)
-          setEditTags(nextIdea.tags.join(", "))
-        }
-        setLoading(false)
-      },
-      (err) => {
-        setStatus("error")
-        setError("Failed to load idea in real time.")
-        setLoading(false)
-        console.error(err)
-      }
-    )
-
-    return () => {
-      console.log(`🔌 Detail: Unsubscribing from idea ${ideaId}`)
-      setStatus("off")
-      unsubscribe()
+    if (idea) {
+      // Sync edit state
+      setEditTitle(idea.title)
+      setEditSummary(idea.summary)
+      setEditStatus(idea.status)
+      setEditTags(idea.tags.join(", "))
     }
-  }, [ideaId, setStatus, retryKey])
-
-  useEffect(() => {
-    if (!ideaId) return
-
-    console.log(`📝 Detail: Subscribing to notes for ${ideaId}`)
-    setNotesLoading(true)
-    setNotesError(null)
-    
-    const unsubscribeNotes = subscribeToIdeaNotes(
-      ideaId,
-      (updatedNotes) => {
-        setNotes(updatedNotes)
-        setNotesLoading(false)
-      },
-      (err) => {
-        console.error("Error subscribing to notes:", err)
-        setNotesError("Failed to load notes.")
-        setNotesLoading(false)
-      }
-    )
-
-    return () => {
-      console.log(`📝 Detail: Unsubscribing from notes for ${ideaId}`)
-      unsubscribeNotes()
-    }
-  }, [ideaId])
+  }, [idea])
 
   const handleSave = async () => {
     if (!idea || !ideaId) return
     
     setSaving(true)
-    setError(null)
     
     try {
       const tagArray = editTags
@@ -136,7 +72,6 @@ export default function IdeaDetailPage() {
     } catch (err) {
       console.error(err)
       toast.error("Failed to update idea.")
-      setError("Failed to update idea.")
     } finally {
       setSaving(false)
     }
@@ -181,20 +116,18 @@ export default function IdeaDetailPage() {
     }
   }
 
-  if (loading || isDelaying) {
+  if (ideaLoading) {
     return <IdeaDetailSkeleton />
   }
 
-  if (error || !idea) {
+  if (ideaError || !idea) {
     return (
       <div className="max-w-2xl mx-auto space-y-8 pt-12">
         <ErrorState
-            title={!idea && !error ? "Idea Not Found" : "Connection Error"}
-            message={error || "We couldn't find the idea you're looking for. It might have been deleted or archived."}
+            title={!idea && !ideaError ? "Idea Not Found" : "Connection Error"}
+            message={ideaError || "We couldn't find the idea you're looking for. It might have been deleted or archived."}
             onRetry={() => {
-                setError(null)
-                setIsDelaying(true)
-                setRetryKey(k => k + 1)
+                window.location.reload()
             }}
         />
         <div className="flex justify-center">
@@ -211,9 +144,14 @@ export default function IdeaDetailPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-3 mb-2">
-            <BadgePill 
-              label={idea.status.toUpperCase()} 
-              variant={idea.status === "shipped" ? "success" : "outline"}
+            <BadgePill
+              label={idea.status.toUpperCase()}
+              variant={
+                idea.status === "shipped" ? "success" :
+                idea.status === "active" ? "primary" :
+                idea.status === "paused" ? "warning" :
+                "outline"
+              }
             />
             <span className="text-[10px] font-black uppercase text-muted-foreground tracking-tighter">
               ID: {idea.id}
@@ -277,10 +215,11 @@ export default function IdeaDetailPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="paused">Paused</SelectItem>
-                        <SelectItem value="shipped">Shipped</SelectItem>
+                        {STATUS_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

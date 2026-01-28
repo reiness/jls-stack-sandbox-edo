@@ -1,5 +1,5 @@
 import { BadgePill } from "../components/common/BadgePill"
-import { EmptyState } from "../components/common/EmptyState"
+import { EmptyState } from "../components/states/EmptyState"
 import { InfoRow } from "../components/common/InfoRow"
 import { InlineAlert } from "../components/common/InlineAlert"
 import { PageHeader } from "../components/common/PageHeader"

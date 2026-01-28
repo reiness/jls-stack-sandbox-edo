@@ -2,9 +2,9 @@ import { useEffect, useState, useCallback } from "react"
 import { Link } from "react-router-dom"
 import { getProductIdeasPaginated, getProductIdeaNotes, createProductIdeaNote, deleteProductIdeaNote, archiveIdea, restoreIdea, updateProductIdeaNote } from "@/lib/firestore/productIdeas"
 import type { ProductIdeaFilters, ProductIdeaCursor } from "@/lib/firestore/productIdeas"
-import type { ProductIdea, ProductIdeaStatus, ProductIdeaNote } from "@/types/productIdeas"
+import { STATUS_OPTIONS, type ProductIdea, type ProductIdeaStatus, type ProductIdeaNote } from "@/types/productIdeas"
 import { SectionCard } from "../common/SectionCard"
-import { EmptyState } from "../common/EmptyState"
+import { EmptyState } from "../states/EmptyState"
 import { BadgePill } from "../common/BadgePill"
 import { InlineAlert } from "../common/InlineAlert"
 import { Button } from "../ui/button"
@@ -352,10 +352,11 @@ export function IdeasList({ isArchived = false }: IdeasListProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="paused">Paused</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
+                  {STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

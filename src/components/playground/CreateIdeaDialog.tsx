@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useUser } from "@/lib/context/UserContext"
 import { createProductIdea, createProductIdeaNote } from "@/lib/firestore/productIdeas"
-import type { ProductIdeaPriority, ProductIdeaStatus } from "@/types/productIdeas"
+import { STATUS_OPTIONS, type ProductIdeaPriority, type ProductIdeaStatus } from "@/types/productIdeas"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
@@ -123,10 +123,11 @@ export function CreateIdeaDialog({ open, onOpenChange, onSuccess }: CreateIdeaDi
                   <SelectValue placeholder="Select Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="paused">Paused</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
+                  {STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -5,7 +5,7 @@ import { InlineAlert } from "../components/common/InlineAlert"
 import { PageHeader } from "../components/common/PageHeader"
 import { StatsRow } from "../components/dashboard/StatsRow"
 import { SectionCard } from "../components/common/SectionCard"
-import { EmptyState } from "../components/common/EmptyState"
+import { EmptyState } from "../components/states/EmptyState"
 import { Button } from "../components/ui/button"
 import { BadgePill } from "../components/common/BadgePill"
 import { subscribeToActiveIdeas, type ProductIdea } from "@/lib/firestore/productIdeas"
@@ -125,7 +125,12 @@ export function DashboardPage() {
                 </div>
                 <BadgePill
                   label={idea.status.toUpperCase()}
-                  variant={idea.status === "shipped" ? "success" : "outline"}
+                  variant={
+                    idea.status === "shipped" ? "success" :
+                    idea.status === "active" ? "primary" :
+                    idea.status === "paused" ? "warning" :
+                    "outline"
+                  }
                 />
               </Link>
             ))}
