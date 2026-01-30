@@ -64,7 +64,7 @@ export default function IdeasPage() {
     <div className="space-y-8">
       <PageHeader
         title="Product Ideas"
-        subtitle="Browse, filter, and manage product ideas submitted by the team."
+        subtitle="The central hub for all product innovation. Capture, refine, and prioritize your best concepts."
         actions={
           <div className="flex items-center gap-3">
             <Button
@@ -186,6 +186,7 @@ export default function IdeasPage() {
 
                     <div className="flex flex-col items-end gap-3 min-w-[120px]">
                       <div className="flex flex-wrap justify-end gap-2">
+                        <PriorityBadge priority={idea.priority} />
                         {(idea.tags ?? []).slice(0, 3).map((t) => (
                           <BadgePill key={t} label={t} variant="secondary" />
                         ))}
