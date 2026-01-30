@@ -6,7 +6,7 @@ interface PriorityBadgeProps {
 }
 
 export function PriorityBadge({ priority }: PriorityBadgeProps) {
-  if (!priority) return null
+  if (!priority || !['low', 'medium', 'high'].includes(priority)) return null
 
   const config = {
     low: { label: "Low", variant: "info" as const },

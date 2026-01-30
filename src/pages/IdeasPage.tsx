@@ -168,7 +168,7 @@ export default function IdeasPage() {
                       <h4 className="font-black text-xl text-foreground tracking-tight group-hover:text-primary transition-colors">
                         {idea.title}
                       </h4>
-                      <p className="text-sm text-muted-foreground font-medium line-clamp-2 pr-8">
+                      <p className="text-sm text-muted-foreground font-medium line-clamp-2">
                         {idea.summary}
                       </p>
                       <div className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-wide text-muted-foreground pt-1">
