@@ -176,7 +176,7 @@ export default function IdeaDetailPage() {
               onClick={handleArchive}
               className="border-2 border-border shadow-hard-sm font-bold bg-destructive text-destructive-foreground"
             >
-              Archive
+              Archive Idea
             </Button>
           )}
         </div>
