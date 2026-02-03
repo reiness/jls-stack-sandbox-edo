@@ -6,3 +6,5 @@ This file exists so you can practice Git safely without touching app logic.
 - Created this file.
 - Clean notes
 - Clean code
+
+## Life is always awesome!
