@@ -4,3 +4,5 @@ This file exists so you can practice Git safely without touching app logic.
 
 ## Notes
 - Created this file.
+
+- This line will be reverted (practice).
