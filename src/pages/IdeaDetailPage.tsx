@@ -1,3 +1,4 @@
+// Feature: ideas-detail-header
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -175,7 +176,7 @@ export default function IdeaDetailPage() {
               onClick={handleArchive}
               className="border-2 border-border shadow-hard-sm font-bold bg-destructive text-destructive-foreground"
             >
-              Archive
+              Archive idea
             </Button>
           )}
         </div>
@@ -327,7 +328,7 @@ export default function IdeaDetailPage() {
         {/* Sidebar Info */}
         <div className="space-y-6">
           <div className="bg-card border-2 border-border shadow-hard-sm rounded-3xl p-6 space-y-4">
-            <h3 className="font-black uppercase tracking-tight border-b-2 border-border pb-2">Details</h3>
+            <h3 className="font-black uppercase tracking-tight border-b-2 border-border pb-2">Idea Details</h3>
             
             <div className="space-y-3">
               <div className="flex justify-between items-center">
