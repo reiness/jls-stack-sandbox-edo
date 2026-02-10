@@ -34,7 +34,7 @@ export function useIdea(ideaId: string | undefined) {
       },
       (err) => {
         console.error("Error subscribing to idea:", err)
-        setError("Failed to load idea in real time.")
+        setError("Failed to load idea in real time :(")
         setLoading(false)
         setStatus("error")
       }
